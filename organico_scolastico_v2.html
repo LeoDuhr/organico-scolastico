@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Organico di Fatto 2025-26</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1117;--surface:#181c27;--surface2:#1e2333;--border:#2a3045;--accent:#4f8ef7;--accent2:#7c5ff7;--green:#34d399;--red:#f87171;--yellow:#fbbf24;--text:#e8ecf5;--muted:#7c879e;--serif:'DM Serif Display',serif;--sans:'DM Sans',sans-serif}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh}
+.layout{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:220px;min-width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-brand{padding:20px 18px 16px;border-bottom:1px solid var(--border)}
+.brand-title{font-family:var(--serif);font-size:1.15rem;color:var(--text);line-height:1.2}
+.brand-sub{font-size:.72rem;color:var(--muted);margin-top:3px;letter-spacing:.05em;text-transform:uppercase}
+.nav{padding:12px 10px;flex:1;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:500;color:var(--muted);transition:all .15s;margin-bottom:2px;user-select:none}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:linear-gradient(135deg,rgba(79,142,247,.15),rgba(124,95,247,.1));color:var(--accent);border:1px solid rgba(79,142,247,.2)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0}
+.sidebar-footer{padding:14px 18px;border-top:1px solid var(--border)}
+.role-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:6px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface)}
+.page-title{font-family:var(--serif);font-size:1.4rem}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.btn{padding:7px 16px;border-radius:8px;font-size:.82rem;font-weight:500;cursor:pointer;border:none;font-family:var(--sans);transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#3a7af5}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--text);border-color:var(--muted)}
+.btn-danger{background:rgba(248,113,113,.15);color:var(--red);border:1px solid rgba(248,113,113,.3)}
+.btn-danger:hover{background:rgba(248,113,113,.25)}
+.btn-success{background:rgba(52,211,153,.15);color:var(--green);border:1px solid rgba(52,211,153,.3)}
+.content{flex:1;overflow-y:auto;padding:20px 24px}
+.page{display:none}
+.page.active{display:block}
+.filters-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:16px}
+.filter-group{display:flex;align-items:center;gap:6px}
+.filter-label{font-size:.75rem;color:var(--muted);font-weight:500;white-space:nowrap}
+select,input[type=text],input[type=number]{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 10px;font-size:.82rem;font-family:var(--sans);outline:none;transition:border-color .15s}
+select:focus,input[type=text]:focus,input[type=number]:focus{border-color:var(--accent)}
+select option{background:var(--surface2)}
+.search-input{width:200px}
+.results-meta{font-size:.78rem;color:var(--muted);margin-bottom:12px}
+.results-meta strong{color:var(--text)}
+.table-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+thead th{background:var(--surface2);padding:10px 14px;text-align:left;font-weight:600;color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap}
+thead th:hover{color:var(--text)}
+thead th.sorted{color:var(--accent)}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surface)}
+tbody td{padding:9px 14px;vertical-align:middle}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:600}
+.badge-cdc{background:rgba(79,142,247,.12);color:var(--accent);border:1px solid rgba(79,142,247,.25)}
+.badge-b{background:rgba(124,95,247,.12);color:#a78bfa;border:1px solid rgba(124,95,247,.25)}
+.badge-ore{background:rgba(251,191,36,.12);color:var(--yellow);border:1px solid rgba(251,191,36,.25)}
+.badge-green{background:rgba(52,211,153,.12);color:var(--green);border:1px solid rgba(52,211,153,.25)}
+.action-btns{display:flex;gap:6px}
+.btn-icon{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 8px;cursor:pointer;font-size:.78rem;transition:all .15s;font-family:var(--sans)}
+.btn-icon:hover{color:var(--text);border-color:var(--muted)}
+.btn-icon.edit:hover{color:var(--accent);border-color:var(--accent)}
+.btn-icon.del:hover{color:var(--red);border-color:var(--red)}
+.pagination{display:flex;align-items:center;gap:6px;margin-top:14px}
+.page-btn{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:.8rem;cursor:pointer;font-family:var(--sans);transition:all .15s;display:flex;align-items:center;justify-content:center}
+.page-btn:hover{color:var(--text);border-color:var(--muted)}
+.page-btn.active-page{background:var(--accent);color:#fff;border-color:var(--accent)}
+.page-btn:disabled{opacity:.3;cursor:default}
+.page-info{font-size:.78rem;color:var(--muted);margin-left:6px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.stat-label{font-size:.74rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.stat-value{font-family:var(--serif);font-size:2rem;line-height:1}
+.stat-sub{font-size:.74rem;color:var(--muted);margin-top:4px}
+.section-title{font-family:var(--serif);font-size:1.1rem;margin-bottom:14px}
+.ore-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:24px}
+.ore-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.ore-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.ore-cdc{font-weight:600;font-size:1rem;color:var(--text)}
+.ore-diff{font-size:.78rem;font-weight:600}
+.diff-ok{color:var(--green)}.diff-warn{color:var(--yellow)}.diff-bad{color:var(--red)}
+.ore-bars{display:flex;flex-direction:column;gap:6px}
+.ore-bar-row{display:flex;align-items:center;gap:8px;font-size:.75rem;color:var(--muted)}
+.ore-bar-wrap{flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.ore-bar-fill{height:100%;border-radius:3px;transition:width .4s}
+.bar-servono{background:var(--accent)}.bar-dato{background:var(--accent2)}
+.docenti-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.docente-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;transition:all .15s;cursor:pointer}
+.docente-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.docente-name{font-weight:600;font-size:.95rem;margin-bottom:8px}
+.docente-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:1000}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:580px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:modalIn .2s ease}
+.modal-wide{width:760px}
+@keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(8px)}to{opacity:1;transform:none}}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-title{font-family:var(--serif);font-size:1.2rem}
+.modal-close{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:1.2rem}
+.modal-close:hover{color:var(--text)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group.full{grid-column:1/-1}
+.form-label{font-size:.75rem;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+.form-input{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:8px 12px;font-size:.85rem;font-family:var(--sans);outline:none;transition:border-color .15s;width:100%}
+.form-input:focus{border-color:var(--accent)}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;padding-top:16px;border-top:1px solid var(--border)}
+.toast-container{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:2000}
+.toast{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:.84rem;color:var(--text);box-shadow:0 8px 24px rgba(0,0,0,.4);animation:toastIn .25s ease;display:flex;align-items:center;gap:10px;min-width:220px}
+.toast.success{border-color:rgba(52,211,153,.4)}.toast.error{border-color:rgba(248,113,113,.4)}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-state-icon{font-size:3rem;margin-bottom:12px;opacity:.4}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+
+/* ===== PIANI DI STUDIO ===== */
+.piani-layout{display:grid;grid-template-columns:280px 1fr;gap:20px;height:calc(100vh - 130px)}
+.piani-list{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.piani-list-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.piani-list-title{font-weight:600;font-size:.9rem}
+.piani-scroll{overflow-y:auto;flex:1}
+.piano-item{padding:12px 16px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s}
+.piano-item:last-child{border-bottom:none}
+.piano-item:hover{background:var(--surface2)}
+.piano-item.selected{background:linear-gradient(135deg,rgba(79,142,247,.12),rgba(124,95,247,.08));border-left:3px solid var(--accent)}
+.piano-item-name{font-weight:600;font-size:.88rem;margin-bottom:4px}
+.piano-item-meta{font-size:.74rem;color:var(--muted);display:flex;gap:10px}
+.piano-detail{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.piano-detail-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.piano-detail-title{font-family:var(--serif);font-size:1.3rem}
+.piano-detail-actions{display:flex;gap:8px;flex-wrap:wrap}
+.piano-detail-body{padding:20px;overflow-y:auto;flex:1}
+.classi-section{margin-bottom:20px}
+.classi-section-title{font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.classi-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.classe-chip{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:.82rem;font-weight:500}
+.classe-chip-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.9rem;padding:0;line-height:1}
+.classe-chip-del:hover{color:var(--red)}
+.add-classe-row{display:flex;gap:8px;align-items:center;margin-top:8px}
+.add-classe-row input{width:140px}
+.materie-table-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.materie-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.materie-table thead th{background:var(--surface2);padding:9px 14px;text-align:left;font-weight:600;color:var(--muted);font-size:.73rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border)}
+.materie-table tbody tr{border-bottom:1px solid var(--border)}
+.materie-table tbody tr:last-child{border-bottom:none}
+.materie-table tbody tr:hover{background:rgba(255,255,255,.02)}
+.materie-table td{padding:8px 14px;vertical-align:middle}
+.materie-table td input{background:var(--bg);border:1px solid transparent;color:var(--text);border-radius:5px;padding:4px 8px;font-size:.82rem;font-family:var(--sans);width:100%;outline:none}
+.materie-table td input:focus{border-color:var(--accent);background:var(--surface)}
+.ore-total-row{background:rgba(79,142,247,.06);font-weight:600}
+.ore-total-row td{color:var(--accent);padding:8px 14px}
+.piano-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--muted);gap:12px;padding:40px}
+.piano-empty-icon{font-size:3rem;opacity:.3}
+.aggiungi-materia-row td{padding:6px 14px}
+.aggiungi-materia-row input{font-style:italic;color:var(--muted)}
+.aggiungi-materia-row input:focus{font-style:normal;color:var(--text)}
+.new-piano-modal .form-grid{grid-template-columns:1fr}
+.ore-badge-total{display:inline-flex;align-items:center;gap:5px;background:rgba(79,142,247,.12);color:var(--accent);border:1px solid rgba(79,142,247,.25);border-radius:20px;padding:4px 12px;font-size:.8rem;font-weight:600}
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-title">Organico<br>di Fatto</div>
+      <div class="brand-sub">Anno 2025 – 2026</div>
+    </div>
+    <nav class="nav">
+      <div class="nav-item active" onclick="showPage('assegnazioni',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Assegnazioni
+      </div>
+      <div class="nav-item" onclick="showPage('piani',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>Piani di Studio
+      </div>
+      <div class="nav-item" onclick="showPage('docenti',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Docenti
+      </div>
+      <div class="nav-item" onclick="showPage('dashboard',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="13" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="17" y="5" width="4" height="16" rx="1"/></svg>Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('export',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Esporta
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div style="display:flex;align-items:center;margin-bottom:8px"><span class="role-dot"></span><span style="font-size:.75rem;color:var(--muted)" id="roleLabel">Admin</span></div>
+      <select id="roleSwitch" onchange="switchRole(this.value)" style="width:100%;font-size:.75rem;">
+        <option value="admin">👑 Admin / Dirigente</option>
+        <option value="segreteria">📋 Segreteria</option>
+        <option value="viewer">👁️ Visualizzatore</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="page-title" id="pageTitle">Assegnazioni</div>
+      <div class="topbar-right">
+        <span style="font-size:.78rem;color:var(--muted)" id="recordCount"></span>
+        <button class="btn btn-primary" id="addBtn" onclick="openAdd()" style="display:flex">+ Nuova assegnazione</button>
+        <button class="btn btn-primary" id="addPianoBtn" onclick="openNewPiano()" style="display:none">+ Nuovo piano</button>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- ASSEGNAZIONI -->
+      <div class="page active" id="page-assegnazioni">
+        <div class="filters-bar">
+          <div class="filter-group"><span class="filter-label">🔍</span><input type="text" class="search-input" id="searchInput" placeholder="Cerca classe, disciplina, docente…" oninput="applyFilters()"></div>
+          <div class="filter-group"><span class="filter-label">Piano</span><select id="filterPiano" onchange="applyFilters()"><option value="">Tutti</option></select></div>
+          <div class="filter-group"><span class="filter-label">CDC</span><select id="filterCdc" onchange="applyFilters()"><option value="">Tutti</option></select></div>
+          <div class="filter-group"><span class="filter-label">Docente</span><select id="filterDocente" onchange="applyFilters()"><option value="">Tutti</option></select></div>
+          <button class="btn btn-ghost" onclick="resetFilters()">✕ Reset</button>
+        </div>
+        <div class="results-meta" id="resultsMeta"></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th onclick="sortBy('piano')">Piano <span id="sort-piano"></span></th>
+              <th onclick="sortBy('classe')">Classe <span id="sort-classe"></span></th>
+              <th onclick="sortBy('disciplina')">Disciplina <span id="sort-disciplina"></span></th>
+              <th onclick="sortBy('cdc_a')">CDC A <span id="sort-cdc_a"></span></th>
+              <th onclick="sortBy('ore_a')">Ore <span id="sort-ore_a"></span></th>
+              <th onclick="sortBy('docente_a')">Docente A <span id="sort-docente_a"></span></th>
+              <th>CDC B</th><th>Docente B</th><th></th>
+            </tr></thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination"></div>
+      </div>
+
+      <!-- PIANI DI STUDIO -->
+      <div class="page" id="page-piani">
+        <div class="piani-layout">
+          <div class="piani-list">
+            <div class="piani-list-header">
+              <span class="piani-list-title">Piani (<span id="pianiCount">0</span>)</span>
+              <input type="text" placeholder="Cerca…" style="width:110px;font-size:.78rem;" oninput="filterPianiList(this.value)">
+            </div>
+            <div class="piani-scroll" id="pianiScroll"></div>
+          </div>
+          <div class="piano-detail" id="pianoDetail">
+            <div class="piano-empty">
+              <div class="piano-empty-icon">📋</div>
+              <div style="font-size:.9rem">Seleziona un piano dalla lista</div>
+              <div style="font-size:.78rem">o crea un nuovo piano con il pulsante in alto</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DOCENTI -->
+      <div class="page" id="page-docenti">
+        <div class="filters-bar">
+          <div class="filter-group"><span class="filter-label">🔍</span><input type="text" style="width:220px" id="searchDocente" placeholder="Cerca docente…" oninput="renderDocenti()"></div>
+          <div class="filter-group"><span class="filter-label">CDC</span><select id="filterDocenteCdc" onchange="renderDocenti()"><option value="">Tutti</option></select></div>
+        </div>
+        <div class="docenti-grid" id="docentiGrid"></div>
+      </div>
+
+      <!-- DASHBOARD -->
+      <div class="page" id="page-dashboard">
+        <div class="stats-grid" id="statsGrid"></div>
+        <div class="section-title">Ore per Classe di Concorso</div>
+        <div class="ore-grid" id="oreGrid"></div>
+        <div class="section-title" style="margin-top:8px">Distribuzione per Piano</div>
+        <div id="pianoChart" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+
+      <!-- EXPORT -->
+      <div class="page" id="page-export">
+        <div style="max-width:560px">
+          <div class="section-title" style="margin-bottom:16px">Esporta Dati</div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div class="ore-card" style="padding:18px"><div style="font-weight:600;margin-bottom:6px">📊 CSV completo assegnazioni</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Tutte le assegnazioni in formato CSV.</div><button class="btn btn-primary" onclick="exportCSV('all')">Scarica CSV</button></div>
+            <div class="ore-card" style="padding:18px"><div style="font-weight:600;margin-bottom:6px">🔍 CSV selezione corrente</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Solo i record filtrati nella vista Assegnazioni.</div><button class="btn btn-ghost" onclick="exportCSV('filtered')">Scarica filtrato</button></div>
+            <div class="ore-card" style="padding:18px"><div style="font-weight:600;margin-bottom:6px">📋 CSV piani di studio</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Esporta tutti i piani di studio con le materie.</div><button class="btn btn-ghost" onclick="exportPianiCSV()">Scarica piani</button></div>
+            <div class="ore-card" style="padding:18px"><div style="font-weight:600;margin-bottom:6px">👥 Riepilogo docenti</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Ore totali per docente.</div><button class="btn btn-ghost" onclick="exportDocentiCSV()">Scarica docenti</button></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ASSEGNAZIONE -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header"><div class="modal-title" id="modalTitle">Nuova Assegnazione</div><button class="modal-close" onclick="closeModalById('modalOverlay')">✕</button></div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Piano di Studi</label><input class="form-input" id="fPiano" type="text"></div>
+      <div class="form-group"><label class="form-label">Classe</label><input class="form-input" id="fClasse" type="text"></div>
+      <div class="form-group full"><label class="form-label">Disciplina</label><input class="form-input" id="fDisciplina" type="text"></div>
+      <div class="form-group"><label class="form-label">Codice</label><input class="form-input" id="fCodice" type="text"></div>
+      <div class="form-group"><label class="form-label">CDC A</label><input class="form-input" id="fCdcA" type="text"></div>
+      <div class="form-group"><label class="form-label">Ore CDC A</label><input class="form-input" id="fOreA" type="number" min="0" max="40"></div>
+      <div class="form-group"><label class="form-label">CDC B / ITP</label><input class="form-input" id="fCdcB" type="text"></div>
+      <div class="form-group full"><label class="form-label">Docente A</label><input class="form-input" id="fDocenteA" type="text"></div>
+      <div class="form-group full"><label class="form-label">Docente B (ITP)</label><input class="form-input" id="fDocenteB" type="text"></div>
+      <div class="form-group full"><label class="form-label">Potenziamento</label><input class="form-input" id="fPotenziamento" type="text"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModalById('modalOverlay')">Annulla</button><button class="btn btn-primary" onclick="saveRecord()">Salva</button></div>
+  </div>
+</div>
+
+<!-- MODAL NUOVO PIANO -->
+<div class="modal-overlay" id="newPianoOverlay" onclick="closeModal(event)">
+  <div class="modal new-piano-modal" onclick="event.stopPropagation()">
+    <div class="modal-header"><div class="modal-title">Nuovo Piano di Studio</div><button class="modal-close" onclick="closeModalById('newPianoOverlay')">✕</button></div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="form-group"><label class="form-label">Nome Piano (es. ITI BIENNIO 1)</label><input class="form-input" id="npNome" type="text" placeholder="es. NUOVO INDIRIZZO 1"></div>
+      <div class="form-group"><label class="form-label">Copia struttura da piano esistente (opzionale)</label>
+        <select class="form-input" id="npCopia"><option value="">— Inizia da zero —</option></select>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModalById('newPianoOverlay')">Annulla</button><button class="btn btn-primary" onclick="createNewPiano()">Crea Piano</button></div>
+  </div>
+</div>
+
+<!-- MODAL AGGIUNGI CLASSE A PIANO -->
+<div class="modal-overlay" id="addClasseOverlay" onclick="closeModal(event)">
+  <div class="modal" style="width:400px" onclick="event.stopPropagation()">
+    <div class="modal-header"><div class="modal-title">Aggiungi Classe</div><button class="modal-close" onclick="closeModalById('addClasseOverlay')">✕</button></div>
+    <div class="form-group">
+      <label class="form-label">Nome Classe</label>
+      <input class="form-input" id="acNome" type="text" placeholder="es. ITA 1D">
+    </div>
+    <div style="font-size:.8rem;color:var(--muted);margin-top:10px">Aggiungendo la classe verranno create automaticamente tutte le assegnazioni del piano (senza docente), pronte per essere completate.</div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModalById('addClasseOverlay')">Annulla</button><button class="btn btn-primary" onclick="confirmAddClasse()">Aggiungi e genera assegnazioni</button></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const PIANI_RAW = {"IPIA BIENNIO 1":{"nome":"IPIA BIENNIO 1","classi":["IPIA 1N","IPIA 1R"],"materie":[{"disciplina":"Italiano e storia","codice":"ITA","cdc_a":"A12","ore_a":"5","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Geografia","codice":"GEO","cdc_a":"A50","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Scienze integrate","codice":"SCIINT","cdc_a":"A50","ore_a":"4","cdc_b":"B03","ore_b":"2"},{"disciplina":"Diritto","codice":"DIR","cdc_a":"A46","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Lab. tecn. eser. ELE","codice":"LTEE","cdc_a":"---","ore_a":"3","cdc_b":"B15","ore_b":"3"},{"disciplina":"Tecnologie Informaz. e Com.","codice":"TIC","cdc_a":"A41","ore_a":"2","cdc_b":"B16","ore_b":"2"},{"disciplina":"Tecniche rapp. grafica","codice":"TTRG","cdc_a":"A42","ore_a":"2","cdc_b":"B17","ore_b":"2"},{"disciplina":"Lab. tecn. eser. MEC","codice":"LTEM","cdc_a":"---","ore_a":"3","cdc_b":"B17","ore_b":"3"}],"ore_totali":32},"IPIA BIENNIO 2":{"nome":"IPIA BIENNIO 2","classi":["IPIA 2N","IPIA 2R","IPIA 2P"],"materie":[{"disciplina":"Italiano e storia","codice":"ITA","cdc_a":"A12","ore_a":"5","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Geografia","codice":"GEO","cdc_a":"A50","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Scienze integrate","codice":"SCIINT","cdc_a":"A50","ore_a":"3","cdc_b":"B03","ore_b":"2"},{"disciplina":"Diritto","codice":"DIR","cdc_a":"A46","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Lab. tecn. eser. ELE","codice":"LTEE","cdc_a":"---","ore_a":"3","cdc_b":"B15","ore_b":"3"},{"disciplina":"Tecnologie Informaz. e Com.","codice":"TIC","cdc_a":"A41","ore_a":"2","cdc_b":"B16","ore_b":"2"},{"disciplina":"Tecniche rapp. grafica","codice":"TTRG","cdc_a":"A42","ore_a":"3","cdc_b":"B17","ore_b":"2"},{"disciplina":"Lab. tecn. eser. MEC","codice":"LTEM","cdc_a":"---","ore_a":"3","cdc_b":"B17","ore_b":"3"}],"ore_totali":32},"IPIA ELETTRO 3":{"nome":"IPIA ELETTRO 3","classi":["IPIA 3NP","IPIA 3NP-N"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"TEEA","codice":"TEEA","cdc_a":"A40","ore_a":"5","cdc_b":"B15","ore_b":"3"},{"disciplina":"TTIM","codice":"TTIMAI","cdc_a":"A40","ore_a":"5","cdc_b":"B15","ore_b":"3"},{"disciplina":"Lab. tecn. eser.","codice":"LTE","cdc_a":"---","ore_a":"4","cdc_b":"B15","ore_b":"4"},{"disciplina":"TMA","codice":"TMMA","cdc_a":"A42","ore_a":"4","cdc_b":"B17","ore_b":"3"}],"ore_totali":32},"IPIA ELETTRO 4":{"nome":"IPIA ELETTRO 4","classi":["IPIA 4N"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"TEEA","codice":"TEEA","cdc_a":"A40","ore_a":"5","cdc_b":"B15","ore_b":"3"},{"disciplina":"TTIM","codice":"TTIMAI","cdc_a":"A40","ore_a":"5","cdc_b":"B15","ore_b":"3"},{"disciplina":"Lab. tecn. eser.","codice":"LTE","cdc_a":"---","ore_a":"4","cdc_b":"B15","ore_b":"4"},{"disciplina":"TMA","codice":"TMMA","cdc_a":"A42","ore_a":"4","cdc_b":"B17","ore_b":"3"}],"ore_totali":32},"IPIA ELETTRO 5":{"nome":"IPIA ELETTRO 5","classi":["IPIA 5N"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"TEEA","codice":"TEEA","cdc_a":"A40","ore_a":"4","cdc_b":"B15","ore_b":"3"},{"disciplina":"TTIM","codice":"TTIMAI","cdc_a":"A40","ore_a":"6","cdc_b":"B15","ore_b":"3"},{"disciplina":"Lab. tecn. eser.","codice":"LTE","cdc_a":"---","ore_a":"5","cdc_b":"B15","ore_b":"5"},{"disciplina":"TMA","codice":"TMMA","cdc_a":"A42","ore_a":"3","cdc_b":"B17","ore_b":"3"}],"ore_totali":32},"IPIA MECC 3":{"nome":"IPIA MECC 3","classi":["IPIA 3R","IPIA 3NP-P"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"TEEA","codice":"TEEA","cdc_a":"A40","ore_a":"4","cdc_b":"B15","ore_b":"3"},{"disciplina":"TTIM Diagnostica","codice":"TTIMAI","cdc_a":"A42","ore_a":"5","cdc_b":"B17","ore_b":"3"},{"disciplina":"TMA","codice":"TMMA","cdc_a":"A42","ore_a":"5","cdc_b":"B17","ore_b":"3"},{"disciplina":"Lab. tecn. eser.","codice":"LTE","cdc_a":"---","ore_a":"4","cdc_b":"B17","ore_b":"4"}],"ore_totali":32},"IPIA MECC 4":{"nome":"IPIA MECC 4","classi":["IPIA 4R"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"TEEA","codice":"TEEA","cdc_a":"A40","ore_a":"4","cdc_b":"B15","ore_b":"3"},{"disciplina":"TMA","codice":"TMMA","cdc_a":"A42","ore_a":"5","cdc_b":"B17","ore_b":"3"},{"disciplina":"TTIM Diagnostica","codice":"TTIMAI","cdc_a":"A42","ore_a":"5","cdc_b":"B17","ore_b":"3"},{"disciplina":"Lab. tecn. eser.","codice":"LTE","cdc_a":"---","ore_a":"4","cdc_b":"B17","ore_b":"4"}],"ore_totali":32},"IPIA MECC 5":{"nome":"IPIA MECC 5","classi":["IPIA 5R"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"TEEA","codice":"TEEA","cdc_a":"A40","ore_a":"3","cdc_b":"B15","ore_b":"3"},{"disciplina":"TMA","codice":"TMMA","cdc_a":"A42","ore_a":"4","cdc_b":"B17","ore_b":"3"},{"disciplina":"TTIM Diagnostica","codice":"TTIMAI","cdc_a":"A42","ore_a":"6","cdc_b":"B17","ore_b":"3"},{"disciplina":"Lab. tecn. eser.","codice":"LTE","cdc_a":"---","ore_a":"5","cdc_b":"B17","ore_b":"5"}],"ore_totali":32},"ITA BIENNIO 1":{"nome":"ITA BIENNIO 1","classi":["ITA 1A","ITA 1B","ITA 1C"],"materie":[{"disciplina":"Italiano e storia","codice":"ITA","cdc_a":"A12","ore_a":"6","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Fisica","codice":"FIS","cdc_a":"A20","ore_a":"3","cdc_b":"B03","ore_b":"1"},{"disciplina":"Geografia","codice":"GEO","cdc_a":"A50","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Scienze o Geografia","codice":"SCIGEO","cdc_a":"A50","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Diritto","codice":"DIR","cdc_a":"A46","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Tecniche rapp. grafica","codice":"TTRG","cdc_a":"A37","ore_a":"3","cdc_b":"B17","ore_b":"1"},{"disciplina":"Chimica","codice":"CHIM","cdc_a":"A34","ore_a":"3","cdc_b":"B12","ore_b":"1"},{"disciplina":"Tecnologie informatiche","codice":"TI","cdc_a":"A41","ore_a":"3","cdc_b":"B16","ore_b":"2"}],"ore_totali":33},"ITA BIENNIO 2":{"nome":"ITA BIENNIO 2","classi":["ITA 2A","ITA 2B","ITA 2C","ITA 2D"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"ITA","cdc_a":"A12","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Fisica","codice":"FIS","cdc_a":"A20","ore_a":"3","cdc_b":"B03","ore_b":"1"},{"disciplina":"Scienze o Geografia","codice":"SCIGEO","cdc_a":"A50","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Diritto","codice":"DIR","cdc_a":"A46","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"S.T.A.","codice":"STA","cdc_a":"A51","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Tecniche rapp. grafica","codice":"TTRG","cdc_a":"A37","ore_a":"3","cdc_b":"B17","ore_b":"1"},{"disciplina":"Chimica","codice":"CHIM","cdc_a":"A34","ore_a":"3","cdc_b":"B12","ore_b":"1"}],"ore_totali":32},"ITA GAT 3":{"nome":"ITA GAT 3","classi":["ITA 3A","ITA 3B"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Biotecnologie agrarie","codice":"BIOTEC","cdc_a":"A50","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Economia estimo marketing","codice":"EEMC","cdc_a":"A51","ore_a":"2","cdc_b":"B11","ore_b":"2"},{"disciplina":"Produzioni animali","codice":"PA","cdc_a":"A52","ore_a":"3","cdc_b":"B11","ore_b":"1"},{"disciplina":"Produzioni vegetali","codice":"PV","cdc_a":"A51","ore_a":"5","cdc_b":"B11","ore_b":"2"},{"disciplina":"Genio rurale","codice":"GENRUR","cdc_a":"A37","ore_a":"2","cdc_b":"B11","ore_b":"2"},{"disciplina":"Trasformazione dei prodotti","codice":"TP","cdc_a":"A34","ore_a":"2","cdc_b":"B11","ore_b":"1"}],"ore_totali":32},"ITA GAT4":{"nome":"ITA GAT4","classi":["ITA 4A","ITA 4B"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Biotecnologie agrarie","codice":"BIOTEC","cdc_a":"A51","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Economia estimo marketing","codice":"EEMC","cdc_a":"A51","ore_a":"3","cdc_b":"B11","ore_b":"2"},{"disciplina":"Produzioni animali","codice":"PA","cdc_a":"A52","ore_a":"3","cdc_b":"B11","ore_b":"1"},{"disciplina":"Produzioni vegetali","codice":"PV","cdc_a":"A51","ore_a":"4","cdc_b":"B11","ore_b":"3"},{"disciplina":"Genio rurale","codice":"GENRUR","cdc_a":"A37","ore_a":"2","cdc_b":"B11","ore_b":"2"},{"disciplina":"Trasformazione dei prodotti","codice":"TP","cdc_a":"A34","ore_a":"2","cdc_b":"B11","ore_b":"1"}],"ore_totali":32},"ITA GAT5":{"nome":"ITA GAT5","classi":["ITA 5A"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Economia estimo marketing","codice":"EEMC","cdc_a":"A51","ore_a":"3","cdc_b":"B11","ore_b":"2"},{"disciplina":"Gestione ambiente e territorio","codice":"GEAT","cdc_a":"A51","ore_a":"4","cdc_b":"B11","ore_b":"2"},{"disciplina":"Produzioni animali","codice":"PA","cdc_a":"A52","ore_a":"2","cdc_b":"B11","ore_b":"1"},{"disciplina":"Produzioni vegetali","codice":"PV","cdc_a":"A51","ore_a":"4","cdc_b":"B11","ore_b":"3"},{"disciplina":"Genio rurale","codice":"GENRUR","cdc_a":"A37","ore_a":"2","cdc_b":"B11","ore_b":"1"},{"disciplina":"Trasformazione dei prodotti","codice":"TP","cdc_a":"A34","ore_a":"2","cdc_b":"B11","ore_b":"1"}],"ore_totali":32},"ITA PT3":{"nome":"ITA PT3","classi":["ITA 3C","ITA 3D"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"ITA","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Economia estimo marketing","codice":"EEMC","cdc_a":"A51","ore_a":"3","cdc_b":"B11","ore_b":"2"},{"disciplina":"Produzioni animali","codice":"PA","cdc_a":"A52","ore_a":"3","cdc_b":"B11","ore_b":"1"},{"disciplina":"Produzioni vegetali","codice":"PV","cdc_a":"A51","ore_a":"5","cdc_b":"B11","ore_b":"2"},{"disciplina":"Genio rurale","codice":"GENRUR","cdc_a":"A37","ore_a":"3","cdc_b":"B11","ore_b":"2"},{"disciplina":"Trasformazione dei prodotti","codice":"TP","cdc_a":"A34","ore_a":"2","cdc_b":"B11","ore_b":"1"}],"ore_totali":32},"ITA PT4":{"nome":"ITA PT4","classi":["ITA 4C","ITA 4D"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Biotecnologie agrarie","codice":"BIOTEC","cdc_a":"A50","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Economia estimo marketing","codice":"EEMC","cdc_a":"A51","ore_a":"2","cdc_b":"B11","ore_b":"1"},{"disciplina":"Produzioni animali","codice":"PA","cdc_a":"A52","ore_a":"3","cdc_b":"B11","ore_b":"1"},{"disciplina":"Produzioni vegetali","codice":"PV","cdc_a":"A51","ore_a":"4","cdc_b":"B11","ore_b":"3"},{"disciplina":"Genio rurale","codice":"GENRUR","cdc_a":"A37","ore_a":"2","cdc_b":"B11","ore_b":"2"},{"disciplina":"Trasformazione dei prodotti","codice":"TP","cdc_a":"A34","ore_a":"3","cdc_b":"B11","ore_b":"2"}],"ore_totali":32},"ITA PT5":{"nome":"ITA PT5","classi":["ITA 5C","ITA 5D"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Biotecnologie agrarie","codice":"BIOTEC","cdc_a":"A51","ore_a":"3","cdc_b":"B11","ore_b":"1"},{"disciplina":"Economia estimo marketing","codice":"EEMC","cdc_a":"A51","ore_a":"3","cdc_b":"B11","ore_b":"2"},{"disciplina":"Gestione ambiente e territorio","codice":"GEAT","cdc_a":"A51","ore_a":"2","cdc_b":"B11","ore_b":"1"},{"disciplina":"Produzioni animali","codice":"PA","cdc_a":"A52","ore_a":"2","cdc_b":"B11","ore_b":"1"},{"disciplina":"Produzioni vegetali","codice":"PV","cdc_a":"A51","ore_a":"4","cdc_b":"B11","ore_b":"3"},{"disciplina":"Trasformazione dei prodotti","codice":"TP","cdc_a":"A34","ore_a":"3","cdc_b":"B11","ore_b":"2"}],"ore_totali":32},"ITG 1":{"nome":"ITG 1","classi":["ITG 1A"],"materie":[{"disciplina":"Italiano e storia","codice":"ITA","cdc_a":"A12","ore_a":"6","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Fisica","codice":"FIS","cdc_a":"A20","ore_a":"3","cdc_b":"B03","ore_b":"1"},{"disciplina":"Geografia","codice":"GEO","cdc_a":"A50","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Scienze o Geografia","codice":"SCIGEO","cdc_a":"A50","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Diritto","codice":"DIR","cdc_a":"A46","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Tecniche rapp. grafica","codice":"TTRG","cdc_a":"A37","ore_a":"3","cdc_b":"B17","ore_b":"1"},{"disciplina":"Chimica","codice":"CHIM","cdc_a":"A34","ore_a":"3","cdc_b":"B12","ore_b":"1"},{"disciplina":"Tecnologie informatiche","codice":"TI","cdc_a":"A41","ore_a":"3","cdc_b":"B16","ore_b":"2"}],"ore_totali":33},"ITG 2":{"nome":"ITG 2","classi":["ITG 2A"],"materie":[{"disciplina":"Italiano e storia","codice":"ITA","cdc_a":"A12","ore_a":"6","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Fisica","codice":"FIS","cdc_a":"A20","ore_a":"3","cdc_b":"B03","ore_b":"1"},{"disciplina":"Scienze o Geografia","codice":"SCIGEO","cdc_a":"A50","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Diritto","codice":"DIR","cdc_a":"A46","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"STA","codice":"STA","cdc_a":"A37","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Tecniche rapp. grafica","codice":"TTRG","cdc_a":"A37","ore_a":"3","cdc_b":"B17","ore_b":"1"},{"disciplina":"Chimica","codice":"CHIM","cdc_a":"A34","ore_a":"3","cdc_b":"B12","ore_b":"1"}],"ore_totali":32},"ITG 3":{"nome":"ITG 3","classi":[],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"ITA","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Geopedologia","codice":"GEE","cdc_a":"A51","ore_a":"3","cdc_b":"B14","ore_b":"2"},{"disciplina":"Costruzioni","codice":"PCI","cdc_a":"A37","ore_a":"7","cdc_b":"B14","ore_b":"4"},{"disciplina":"Sicurezza","codice":"GCS","cdc_a":"A37","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Topografia","codice":"TOP","cdc_a":"A37","ore_a":"4","cdc_b":"B14","ore_b":"2"}],"ore_totali":32},"ITG 4":{"nome":"ITG 4","classi":["ITG 4 AC","ITG 4 AC-A"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"ITA","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Geopedologia","codice":"GEE","cdc_a":"A51","ore_a":"4","cdc_b":"B14","ore_b":"2"},{"disciplina":"Costruzioni","codice":"PCI","cdc_a":"A37","ore_a":"6","cdc_b":"B14","ore_b":"5"},{"disciplina":"Sicurezza","codice":"GCS","cdc_a":"A37","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Topografia","codice":"TOP","cdc_a":"A37","ore_a":"4","cdc_b":"B14","ore_b":"2"}],"ore_totali":32},"ITG 5":{"nome":"ITG 5","classi":["ITG 5A"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"ITA","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A27","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Geopedologia","codice":"GEE","cdc_a":"A51","ore_a":"4","cdc_b":"B14","ore_b":"2"},{"disciplina":"Costruzioni","codice":"PCI","cdc_a":"A37","ore_a":"7","cdc_b":"B14","ore_b":"6"},{"disciplina":"Sicurezza","codice":"GCS","cdc_a":"A37","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Topografia","codice":"TOP","cdc_a":"A37","ore_a":"4","cdc_b":"B14","ore_b":"2"}],"ore_totali":32},"ITI BIENNIO 1":{"nome":"ITI BIENNIO 1","classi":["ITI 1A","ITI 1B","ITI 1C","ITI 1E","ITI 1F","ITI 1G","ITI 1H"],"materie":[{"disciplina":"Italiano e storia","codice":"ITA","cdc_a":"A12","ore_a":"6","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Fisica","codice":"FIS","cdc_a":"A20","ore_a":"3","cdc_b":"B03","ore_b":"1"},{"disciplina":"Geografia","codice":"GEO","cdc_a":"A50","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Scienze o Geografia","codice":"SCIGEO","cdc_a":"A50","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Diritto","codice":"DIR","cdc_a":"A46","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Tecniche rapp. grafica","codice":"TTRG","cdc_a":"A37","ore_a":"3","cdc_b":"B17","ore_b":"1"},{"disciplina":"Chimica","codice":"CHIM","cdc_a":"A34","ore_a":"3","cdc_b":"B12","ore_b":"1"},{"disciplina":"Tecnologie informatiche","codice":"TI","cdc_a":"A41","ore_a":"3","cdc_b":"B16","ore_b":"2"}],"ore_totali":33},"ITI BIENNIO 2 CHIM":{"nome":"ITI BIENNIO 2 CHIM","classi":["ITI 2A","ITI 2B"],"materie":[{"disciplina":"Italiano e storia","codice":"ITA","cdc_a":"A12","ore_a":"6","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Fisica","codice":"FIS","cdc_a":"A20","ore_a":"3","cdc_b":"B03","ore_b":"1"},{"disciplina":"Scienze o Geografia","codice":"SCIGEO","cdc_a":"A50","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Diritto","codice":"DIR","cdc_a":"A46","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Tecniche rapp. grafica","codice":"TTRG","cdc_a":"A37","ore_a":"3","cdc_b":"B17","ore_b":"1"},{"disciplina":"Chimica","codice":"CHIM","cdc_a":"A34","ore_a":"3","cdc_b":"B12","ore_b":"1"},{"disciplina":"S.T.A.","codice":"STA","cdc_a":"A34","ore_a":"3","cdc_b":"","ore_b":""}],"ore_totali":32},"ITI BIENNIO 2 ELETTRO":{"nome":"ITI BIENNIO 2 ELETTRO","classi":["ITI 2C"],"materie":[{"disciplina":"Italiano e storia","codice":"ITA","cdc_a":"A12","ore_a":"6","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Fisica","codice":"FIS","cdc_a":"A20","ore_a":"3","cdc_b":"B03","ore_b":"1"},{"disciplina":"Scienze o Geografia","codice":"SCIGEO","cdc_a":"A50","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Diritto","codice":"DIR","cdc_a":"A46","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Tecniche rapp. grafica","codice":"TTRG","cdc_a":"A37","ore_a":"3","cdc_b":"B17","ore_b":"1"},{"disciplina":"Chimica","codice":"CHIM","cdc_a":"A34","ore_a":"3","cdc_b":"B12","ore_b":"1"},{"disciplina":"S.T.A.","codice":"STA","cdc_a":"A40","ore_a":"3","cdc_b":"","ore_b":""}],"ore_totali":32},"ITI BIENNIO 2 INF":{"nome":"ITI BIENNIO 2 INF","classi":["ITI 2E","ITI 2F"],"materie":[{"disciplina":"Italiano e storia","codice":"ITA","cdc_a":"A12","ore_a":"6","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Fisica","codice":"FIS","cdc_a":"A20","ore_a":"3","cdc_b":"B03","ore_b":"1"},{"disciplina":"Scienze o Geografia","codice":"SCIGEO","cdc_a":"A50","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Diritto","codice":"DIR","cdc_a":"A46","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Tecniche rapp. grafica","codice":"TTRG","cdc_a":"A37","ore_a":"3","cdc_b":"B17","ore_b":"1"},{"disciplina":"Chimica","codice":"CHIM","cdc_a":"A34","ore_a":"3","cdc_b":"B12","ore_b":"1"},{"disciplina":"S.T.A.","codice":"STA","cdc_a":"A41","ore_a":"3","cdc_b":"","ore_b":""}],"ore_totali":32},"ITI BIENNIO 2 MECC":{"nome":"ITI BIENNIO 2 MECC","classi":["ITI 2G","ITI 2H"],"materie":[{"disciplina":"Italiano e storia","codice":"ITA","cdc_a":"A12","ore_a":"6","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Fisica","codice":"FIS","cdc_a":"A20","ore_a":"3","cdc_b":"B03","ore_b":"1"},{"disciplina":"Scienze o Geografia","codice":"SCIGEO","cdc_a":"A50","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Diritto","codice":"DIR","cdc_a":"A46","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Tecniche rapp. grafica","codice":"TTRG","cdc_a":"A37","ore_a":"3","cdc_b":"B17","ore_b":"1"},{"disciplina":"Chimica","codice":"CHIM","cdc_a":"A34","ore_a":"3","cdc_b":"B12","ore_b":"1"},{"disciplina":"S.T.A.","codice":"STA","cdc_a":"A42","ore_a":"3","cdc_b":"","ore_b":""}],"ore_totali":32},"ITI CHIM 3":{"nome":"ITI CHIM 3","classi":["ITI 3A","ITI 3B"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Chimica analisi","codice":"CAS","cdc_a":"A34","ore_a":"7","cdc_b":"B12","ore_b":"4"},{"disciplina":"Chimica organica","codice":"EE","cdc_a":"A34","ore_a":"5","cdc_b":"B12","ore_b":"2"},{"disciplina":"Tecnologie chimiche industriali","codice":"SISE","cdc_a":"A34","ore_a":"4","cdc_b":"B12","ore_b":"2"}],"ore_totali":32},"ITI CHIM 4":{"nome":"ITI CHIM 4","classi":["ITI 4A","ITI 4BL","ITI 4BL-A"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Chimica analisi","codice":"CAS","cdc_a":"A34","ore_a":"6","cdc_b":"B12","ore_b":"4"},{"disciplina":"Chimica organica","codice":"EE","cdc_a":"A34","ore_a":"5","cdc_b":"B12","ore_b":"3"},{"disciplina":"Tecnologie chimiche industriali","codice":"SISE","cdc_a":"A34","ore_a":"5","cdc_b":"B12","ore_b":"2"}],"ore_totali":32},"ITI CHIM 5":{"nome":"ITI CHIM 5","classi":["ITI 5A","ITI 5BL","ITI 5BL-A"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Chimica analisi","codice":"CAS","cdc_a":"A34","ore_a":"8","cdc_b":"B12","ore_b":"6"},{"disciplina":"Chimica organica","codice":"EE","cdc_a":"A34","ore_a":"3","cdc_b":"B12","ore_b":"2"},{"disciplina":"Tecnologie chimiche industriali","codice":"SISE","cdc_a":"A34","ore_a":"6","cdc_b":"B12","ore_b":"2"}],"ore_totali":32},"ITI ELETTRO 3":{"nome":"ITI ELETTRO 3","classi":["ITI 3C"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Elettrotecnica ed elettronica","codice":"EE","cdc_a":"A40","ore_a":"7","cdc_b":"B15","ore_b":"4"},{"disciplina":"Sistemi automatici","codice":"SISE","cdc_a":"A40","ore_a":"4","cdc_b":"B15","ore_b":"2"},{"disciplina":"TPSE","codice":"TPSE","cdc_a":"A40","ore_a":"5","cdc_b":"B15","ore_b":"2"}],"ore_totali":32},"ITI MECC 4":{"nome":"ITI MECC 4","classi":["ITI 4H","ITI 4G"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"DPO","codice":"DPO","cdc_a":"A42","ore_a":"4","cdc_b":"B17","ore_b":"2"},{"disciplina":"Meccanica macchine energia","codice":"MEC","cdc_a":"A42","ore_a":"4","cdc_b":"B17","ore_b":"1"},{"disciplina":"sistemi e automazione","codice":"SISM","cdc_a":"A42","ore_a":"3","cdc_b":"B17","ore_b":"2"},{"disciplina":"Tecn mecc di proc. e prodotto","codice":"TECM","cdc_a":"A42","ore_a":"5","cdc_b":"B17","ore_b":"5"}],"ore_totali":32},"ITI ELETTRO 5":{"nome":"ITI ELETTRO 5","classi":["ITI 5C","ITI 5D"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Elettrotecnica ed elettronica","codice":"EE","cdc_a":"A40","ore_a":"6","cdc_b":"B15","ore_b":"3"},{"disciplina":"Sistemi automatici","codice":"SISE","cdc_a":"A40","ore_a":"5","cdc_b":"B15","ore_b":"3"},{"disciplina":"TPSE","codice":"TPSE","cdc_a":"A40","ore_a":"6","cdc_b":"B15","ore_b":"4"}],"ore_totali":32},"ITI INF 3":{"nome":"ITI INF 3","classi":["ITI 3E","ITI 3 FL","ITI 3 FL-F"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Telecomunicazioni","codice":"TLC","cdc_a":"A40","ore_a":"3","cdc_b":"B15","ore_b":"2"},{"disciplina":"Informatica","codice":"INF","cdc_a":"A41","ore_a":"6","cdc_b":"B16","ore_b":"3"},{"disciplina":"Sistemi e reti","codice":"SIR","cdc_a":"A41","ore_a":"4","cdc_b":"B16","ore_b":"2"},{"disciplina":"TPSIT","codice":"TPSIT","cdc_a":"A41","ore_a":"3","cdc_b":"B16","ore_b":"1"}],"ore_totali":32},"ITI INF4":{"nome":"ITI INF4","classi":["ITI 4E","ITI 4F"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Telecomunicazioni","codice":"TLC","cdc_a":"A40","ore_a":"3","cdc_b":"B15","ore_b":"2"},{"disciplina":"Informatica","codice":"INF","cdc_a":"A41","ore_a":"6","cdc_b":"B16","ore_b":"4"},{"disciplina":"Sistemi e reti","codice":"SIR","cdc_a":"A41","ore_a":"4","cdc_b":"B16","ore_b":"2"},{"disciplina":"TPSIT","codice":"TPSIT","cdc_a":"A41","ore_a":"3","cdc_b":"B16","ore_b":"1"}],"ore_totali":32},"ITI INF 5":{"nome":"ITI INF 5","classi":["ITI 5E","ITI 5F"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"GPOI","codice":"GPOI","cdc_a":"A41","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Informatica","codice":"INF","cdc_a":"A41","ore_a":"6","cdc_b":"B16","ore_b":"4"},{"disciplina":"Sistemi e reti","codice":"SIR","cdc_a":"A41","ore_a":"4","cdc_b":"B16","ore_b":"3"},{"disciplina":"TPSIT","codice":"TPSIT","cdc_a":"A41","ore_a":"4","cdc_b":"B16","ore_b":"3"}],"ore_totali":32},"ITI MECC 3":{"nome":"ITI MECC 3","classi":["ITI 3G","ITI 3H"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"DPO","codice":"DPO","cdc_a":"A42","ore_a":"3","cdc_b":"B17","ore_b":"1"},{"disciplina":"Meccanica macchine energia","codice":"MEC","cdc_a":"A42","ore_a":"4","cdc_b":"B17","ore_b":"1"},{"disciplina":"sistemi e automazione","codice":"SISM","cdc_a":"A42","ore_a":"4","cdc_b":"B17","ore_b":"2"},{"disciplina":"Tecn mecc di proc. e prodotto","codice":"TECM","cdc_a":"A42","ore_a":"5","cdc_b":"B17","ore_b":"4"}],"ore_totali":32},"ITI MECC 5":{"nome":"ITI MECC 5","classi":["ITI 5G","ITI 5H"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"DPO","codice":"DPO","cdc_a":"A42","ore_a":"5","cdc_b":"B17","ore_b":"2"},{"disciplina":"Meccanica macchine energia","codice":"MEC","cdc_a":"A42","ore_a":"4","cdc_b":"B17","ore_b":"1"},{"disciplina":"sistemi e automazione","codice":"SISM","cdc_a":"A42","ore_a":"3","cdc_b":"B17","ore_b":"2"},{"disciplina":"Tecn mecc di proc. e prodotto","codice":"TECM","cdc_a":"A42","ore_a":"5","cdc_b":"B17","ore_b":"5"}],"ore_totali":32},"ITI MODA 3":{"nome":"ITI MODA 3","classi":["ITI 3 FL-L"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Economia e marketing","codice":"ECMA","cdc_a":"A46","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Chimica applicata","codice":"CHIA","cdc_a":"A34","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Ideazione prog e ind","codice":"IDEA","cdc_a":"A44","ore_a":"6","cdc_b":"B18","ore_b":"4"},{"disciplina":"Tecn materiali proc prod e org","codice":"TMPPO","cdc_a":"A44","ore_a":"5","cdc_b":"B18","ore_b":"4"}],"ore_totali":32},"ITI MODA 4":{"nome":"ITI MODA 4","classi":["ITI 4BL-L"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Economia e marketing","codice":"ECMA","cdc_a":"A46","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Chimica applicata","codice":"CHIA","cdc_a":"A34","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Ideazione prog e ind","codice":"IDEA","cdc_a":"A44","ore_a":"6","cdc_b":"B18","ore_b":"5"},{"disciplina":"Tecn materiali proc prod e org","codice":"TMPPO","cdc_a":"A44","ore_a":"4","cdc_b":"B18","ore_b":"4"}],"ore_totali":32},"ITI MODA 5":{"nome":"ITI MODA 5","classi":["ITI 5BL-L"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Economia e marketing","codice":"ECMA","cdc_a":"A46","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Chimica applicata","codice":"CHIA","cdc_a":"A34","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Ideazione prog e ind","codice":"IDEA","cdc_a":"A44","ore_a":"6","cdc_b":"B18","ore_b":"6"},{"disciplina":"Tecn materiali proc prod e org","codice":"TMPPO","cdc_a":"A44","ore_a":"5","cdc_b":"B18","ore_b":"4"}],"ore_totali":32},"ITI ELETTRO 4":{"nome":"ITI ELETTRO 4","classi":["ITG 4 AC-C"],"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""},{"disciplina":"Elettrotecnica ed elettronica","codice":"EE","cdc_a":"A40","ore_a":"6","cdc_b":"B15","ore_b":"3"},{"disciplina":"Sistemi automatici","codice":"SISE","cdc_a":"A40","ore_a":"5","cdc_b":"B15","ore_b":"3"},{"disciplina":"TPSE","codice":"TPSE","cdc_a":"A40","ore_a":"5","cdc_b":"B15","ore_b":"3"}],"ore_totali":32}};
+
+const ASSEGNAZIONI_SEED = [{"id":1,"piano":"IPIA BIENNIO 1","classe":"IPIA 1N","disciplina":"Italiano e storia","codice":"ITA","cdc_a":"A12","ore_a":"5","cdc_b":"","docente_a":"Gardinale Arianna","docente_b":"","potenziamento":""},{"id":2,"piano":"IPIA BIENNIO 1","classe":"IPIA 1R","disciplina":"Italiano e storia","codice":"ITA","cdc_a":"A12","ore_a":"5","cdc_b":"","docente_a":"Rinaldi Giovanna","docente_b":"","potenziamento":""},{"id":3,"piano":"ITA BIENNIO 1","classe":"ITA 1A","disciplina":"Italiano e storia","codice":"ITA","cdc_a":"A12","ore_a":"6","cdc_b":"","docente_a":"Pianese Giovanna","docente_b":"","potenziamento":""},{"id":4,"piano":"ITA BIENNIO 1","classe":"ITA 1B","disciplina":"Italiano e storia","codice":"ITA","cdc_a":"A12","ore_a":"6","cdc_b":"","docente_a":"Bortolotti Claudia","docente_b":"","potenziamento":""},{"id":5,"piano":"ITA BIENNIO 1","classe":"ITA 1A","disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","docente_a":"Coin Elena","docente_b":"","potenziamento":""},{"id":6,"piano":"ITA BIENNIO 1","classe":"ITA 1A","disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","docente_a":"Ricci Elisabetta","docente_b":"","potenziamento":""},{"id":7,"piano":"ITA BIENNIO 1","classe":"ITA 1A","disciplina":"Chimica","codice":"CHIM","cdc_a":"A34","ore_a":"3","cdc_b":"B12","docente_a":"LA PORTA VINCENZA","docente_b":"Gallo Francesca","potenziamento":""},{"id":8,"piano":"ITA BIENNIO 1","classe":"ITA 1B","disciplina":"Chimica","codice":"CHIM","cdc_a":"A34","ore_a":"3","cdc_b":"B12","docente_a":"SAMIOLO LUCA","docente_b":"Gallo Francesca","potenziamento":""},{"id":9,"piano":"ITA BIENNIO 2","classe":"ITA 2A","disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","docente_a":"Nai Elena","docente_b":"","potenziamento":""},{"id":10,"piano":"ITA BIENNIO 2","classe":"ITA 2A","disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","docente_a":"Destro Michele","docente_b":"","potenziamento":""},{"id":11,"piano":"ITI BIENNIO 1","classe":"ITI 1A","disciplina":"Italiano e storia","codice":"ITA","cdc_a":"A12","ore_a":"6","cdc_b":"","docente_a":"Bortolotti Claudia","docente_b":"","potenziamento":""},{"id":12,"piano":"ITI BIENNIO 1","classe":"ITI 1A","disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","docente_a":"Coin Elena","docente_b":"","potenziamento":""},{"id":13,"piano":"ITI BIENNIO 1","classe":"ITI 1A","disciplina":"Fisica","codice":"FIS","cdc_a":"A20","ore_a":"3","cdc_b":"B03","docente_a":"Bedendo Paola","docente_b":"Manfrin Moreno","potenziamento":""},{"id":14,"piano":"IPIA ELETTRO 4","classe":"IPIA 4N","disciplina":"TEEA","codice":"TEEA","cdc_a":"A40","ore_a":"5","cdc_b":"B15","docente_a":"CASSETTA DIEGO","docente_b":"Prestia Valter","potenziamento":""},{"id":15,"piano":"ITI MODA 3","classe":"ITI 3 FL-L","disciplina":"Ideazione prog e ind","codice":"IDEA","cdc_a":"A44","ore_a":"6","cdc_b":"B18","docente_a":"Labella Irene","docente_b":"Longhitano Fabiola","potenziamento":""},{"id":16,"piano":"ITI INF 3","classe":"ITI 3E","disciplina":"Informatica","codice":"INF","cdc_a":"A41","ore_a":"6","cdc_b":"B16","docente_a":"Canale Elena","docente_b":"Melon","potenziamento":""},{"id":17,"piano":"ITA GAT 3","classe":"ITA 3A","disciplina":"Produzioni vegetali","codice":"PV","cdc_a":"A51","ore_a":"5","cdc_b":"B11","docente_a":"Zaghi Renzo","docente_b":"LORETO PAOLO","potenziamento":""},{"id":18,"piano":"ITG 5","classe":"ITG 5A","disciplina":"Costruzioni","codice":"PCI","cdc_a":"A37","ore_a":"7","cdc_b":"B14","docente_a":"VIGNAGA MAURIZIO","docente_b":"MICHIELETTI ENRICO","potenziamento":""}];
+
+const ORE_DATA = [{"cdc":"A12","servono":403,"dato":403,"diff":0},{"cdc":"A20","servono":69,"dato":72,"diff":3},{"cdc":"A26","servono":254,"dato":273,"diff":19},{"cdc":"A34","servono":208,"dato":211,"diff":3},{"cdc":"A37","servono":117,"dato":120,"diff":3},{"cdc":"A40","servono":122,"dato":120,"diff":-2},{"cdc":"A41","servono":135,"dato":138,"diff":3},{"cdc":"A42","servono":158,"dato":159,"diff":1},{"cdc":"A44","servono":32,"dato":32,"diff":0},{"cdc":"A46","servono":64,"dato":64,"diff":0},{"cdc":"A48","servono":136,"dato":142,"diff":6},{"cdc":"A50","servono":83,"dato":82,"diff":-1},{"cdc":"A51","servono":119,"dato":123,"diff":4},{"cdc":"A52","servono":30,"dato":30,"diff":0},{"cdc":"AB24","servono":198,"dato":198,"diff":0},{"cdc":"B03","servono":33,"dato":34,"diff":1},{"cdc":"B11","servono":98,"dato":98,"diff":0},{"cdc":"B12","servono":77,"dato":78,"diff":1},{"cdc":"B14","servono":19,"dato":37,"diff":18},{"cdc":"B15","servono":100,"dato":99,"diff":-1},{"cdc":"B16","servono":77,"dato":80,"diff":3},{"cdc":"B17","servono":142,"dato":145,"diff":3},{"cdc":"B18","servono":27,"dato":27,"diff":0},{"cdc":"RC","servono":68,"dato":71,"diff":3}];
+
+// ============================================================
+// PIANI COMUNI / SPECIFICI / COMPOSIZIONI
+// ============================================================
+const PIANI_COMUNI_RAW = {
+"COMUNI 3-4":{"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""}]},
+"COMUNI 5":{"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""}]},
+"IPIA COMUNI":{"materie":[{"disciplina":"Italiano","codice":"ITA","cdc_a":"A12","ore_a":"4","cdc_b":"","ore_b":""},{"disciplina":"Storia","codice":"STO","cdc_a":"A12/A18","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Matematica","codice":"MATE","cdc_a":"A26/A27","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Lingua inglese","codice":"ENG","cdc_a":"AB24","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Scienze motorie","codice":"SCIM","cdc_a":"A48","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"IRC o Alternative","codice":"IRC","cdc_a":"RC","ore_a":"1","cdc_b":"","ore_b":""}]}
+};
+
+const PIANI_SPECIFICI_RAW = {
+"ITI CHIM 3 SP":{"materie":[{"disciplina":"Chimica analisi","codice":"CAS","cdc_a":"A34","ore_a":"7","cdc_b":"B12","ore_b":"4"},{"disciplina":"Chimica organica","codice":"EE","cdc_a":"A34","ore_a":"5","cdc_b":"B12","ore_b":"2"},{"disciplina":"Tecnologie chimiche industriali","codice":"SISE","cdc_a":"A34","ore_a":"4","cdc_b":"B12","ore_b":"2"}]},
+"ITI CHIM 4 SP":{"materie":[{"disciplina":"Chimica analisi","codice":"CAS","cdc_a":"A34","ore_a":"6","cdc_b":"B12","ore_b":"4"},{"disciplina":"Chimica organica","codice":"EE","cdc_a":"A34","ore_a":"5","cdc_b":"B12","ore_b":"3"},{"disciplina":"Tecnologie chimiche industriali","codice":"SISE","cdc_a":"A34","ore_a":"5","cdc_b":"B12","ore_b":"2"}]},
+"ITI CHIM 5 SP":{"materie":[{"disciplina":"Chimica analisi","codice":"CAS","cdc_a":"A34","ore_a":"8","cdc_b":"B12","ore_b":"6"},{"disciplina":"Chimica organica","codice":"EE","cdc_a":"A34","ore_a":"3","cdc_b":"B12","ore_b":"2"},{"disciplina":"Tecnologie chimiche industriali","codice":"SISE","cdc_a":"A34","ore_a":"6","cdc_b":"B12","ore_b":"2"}]},
+"ITI ELETTRO 3 SP":{"materie":[{"disciplina":"Elettrotecnica ed elettronica","codice":"EE","cdc_a":"A40","ore_a":"7","cdc_b":"B15","ore_b":"4"},{"disciplina":"Sistemi automatici","codice":"SISE","cdc_a":"A40","ore_a":"4","cdc_b":"B15","ore_b":"2"},{"disciplina":"TPSE","codice":"TPSE","cdc_a":"A40","ore_a":"5","cdc_b":"B15","ore_b":"2"}]},
+"ITI ELETTRO 4 SP":{"materie":[{"disciplina":"Elettrotecnica ed elettronica","codice":"EE","cdc_a":"A40","ore_a":"6","cdc_b":"B15","ore_b":"3"},{"disciplina":"Sistemi automatici","codice":"SISE","cdc_a":"A40","ore_a":"5","cdc_b":"B15","ore_b":"3"},{"disciplina":"TPSE","codice":"TPSE","cdc_a":"A40","ore_a":"5","cdc_b":"B15","ore_b":"3"}]},
+"ITI ELETTRO 5 SP":{"materie":[{"disciplina":"Elettrotecnica ed elettronica","codice":"EE","cdc_a":"A40","ore_a":"6","cdc_b":"B15","ore_b":"3"},{"disciplina":"Sistemi automatici","codice":"SISE","cdc_a":"A40","ore_a":"5","cdc_b":"B15","ore_b":"3"},{"disciplina":"TPSE","codice":"TPSE","cdc_a":"A40","ore_a":"6","cdc_b":"B15","ore_b":"4"}]},
+"ITI INF 3 SP":{"materie":[{"disciplina":"Telecomunicazioni","codice":"TLC","cdc_a":"A40","ore_a":"3","cdc_b":"B15","ore_b":"2"},{"disciplina":"Informatica","codice":"INF","cdc_a":"A41","ore_a":"6","cdc_b":"B16","ore_b":"3"},{"disciplina":"Sistemi e reti","codice":"SIR","cdc_a":"A41","ore_a":"4","cdc_b":"B16","ore_b":"2"},{"disciplina":"TPSIT","codice":"TPSIT","cdc_a":"A41","ore_a":"3","cdc_b":"B16","ore_b":"1"}]},
+"ITI INF 4 SP":{"materie":[{"disciplina":"Telecomunicazioni","codice":"TLC","cdc_a":"A40","ore_a":"3","cdc_b":"B15","ore_b":"2"},{"disciplina":"Informatica","codice":"INF","cdc_a":"A41","ore_a":"6","cdc_b":"B16","ore_b":"4"},{"disciplina":"Sistemi e reti","codice":"SIR","cdc_a":"A41","ore_a":"4","cdc_b":"B16","ore_b":"2"},{"disciplina":"TPSIT","codice":"TPSIT","cdc_a":"A41","ore_a":"3","cdc_b":"B16","ore_b":"1"}]},
+"ITI INF 5 SP":{"materie":[{"disciplina":"GPOI","codice":"GPOI","cdc_a":"A41","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Informatica","codice":"INF","cdc_a":"A41","ore_a":"6","cdc_b":"B16","ore_b":"4"},{"disciplina":"Sistemi e reti","codice":"SIR","cdc_a":"A41","ore_a":"4","cdc_b":"B16","ore_b":"3"},{"disciplina":"TPSIT","codice":"TPSIT","cdc_a":"A41","ore_a":"4","cdc_b":"B16","ore_b":"3"}]},
+"ITI MECC 3 SP":{"materie":[{"disciplina":"DPO","codice":"DPO","cdc_a":"A42","ore_a":"3","cdc_b":"B17","ore_b":"1"},{"disciplina":"Meccanica macchine energia","codice":"MEC","cdc_a":"A42","ore_a":"4","cdc_b":"B17","ore_b":"1"},{"disciplina":"sistemi e automazione","codice":"SISM","cdc_a":"A42","ore_a":"4","cdc_b":"B17","ore_b":"2"},{"disciplina":"Tecn mecc di proc. e prodotto","codice":"TECM","cdc_a":"A42","ore_a":"5","cdc_b":"B17","ore_b":"4"}]},
+"ITI MECC 4 SP":{"materie":[{"disciplina":"DPO","codice":"DPO","cdc_a":"A42","ore_a":"4","cdc_b":"B17","ore_b":"2"},{"disciplina":"Meccanica macchine energia","codice":"MEC","cdc_a":"A42","ore_a":"4","cdc_b":"B17","ore_b":"1"},{"disciplina":"sistemi e automazione","codice":"SISM","cdc_a":"A42","ore_a":"3","cdc_b":"B17","ore_b":"2"},{"disciplina":"Tecn mecc di proc. e prodotto","codice":"TECM","cdc_a":"A42","ore_a":"5","cdc_b":"B17","ore_b":"5"}]},
+"ITI MECC 5 SP":{"materie":[{"disciplina":"DPO","codice":"DPO","cdc_a":"A42","ore_a":"5","cdc_b":"B17","ore_b":"2"},{"disciplina":"Meccanica macchine energia","codice":"MEC","cdc_a":"A42","ore_a":"4","cdc_b":"B17","ore_b":"1"},{"disciplina":"sistemi e automazione","codice":"SISM","cdc_a":"A42","ore_a":"3","cdc_b":"B17","ore_b":"2"},{"disciplina":"Tecn mecc di proc. e prodotto","codice":"TECM","cdc_a":"A42","ore_a":"5","cdc_b":"B17","ore_b":"5"}]},
+"ITI MODA 3 SP":{"materie":[{"disciplina":"Economia e marketing","codice":"ECMA","cdc_a":"A46","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Chimica applicata","codice":"CHIA","cdc_a":"A34","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Ideazione prog e ind","codice":"IDEA","cdc_a":"A44","ore_a":"6","cdc_b":"B18","ore_b":"4"},{"disciplina":"Tecn materiali proc prod e org","codice":"TMPPO","cdc_a":"A44","ore_a":"5","cdc_b":"B18","ore_b":"4"}]},
+"ITI MODA 4 SP":{"materie":[{"disciplina":"Economia e marketing","codice":"ECMA","cdc_a":"A46","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Chimica applicata","codice":"CHIA","cdc_a":"A34","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Ideazione prog e ind","codice":"IDEA","cdc_a":"A44","ore_a":"6","cdc_b":"B18","ore_b":"5"},{"disciplina":"Tecn materiali proc prod e org","codice":"TMPPO","cdc_a":"A44","ore_a":"4","cdc_b":"B18","ore_b":"4"}]},
+"ITI MODA 5 SP":{"materie":[{"disciplina":"Economia e marketing","codice":"ECMA","cdc_a":"A46","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Chimica applicata","codice":"CHIA","cdc_a":"A34","ore_a":"3","cdc_b":"","ore_b":""},{"disciplina":"Ideazione prog e ind","codice":"IDEA","cdc_a":"A44","ore_a":"6","cdc_b":"B18","ore_b":"6"},{"disciplina":"Tecn materiali proc prod e org","codice":"TMPPO","cdc_a":"A44","ore_a":"5","cdc_b":"B18","ore_b":"4"}]},
+"ITG 3 SP":{"materie":[{"disciplina":"Geopedologia","codice":"GEE","cdc_a":"A51","ore_a":"3","cdc_b":"B14","ore_b":"2"},{"disciplina":"Costruzioni","codice":"PCI","cdc_a":"A37","ore_a":"7","cdc_b":"B14","ore_b":"4"},{"disciplina":"Sicurezza","codice":"GCS","cdc_a":"A37","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Topografia","codice":"TOP","cdc_a":"A37","ore_a":"4","cdc_b":"B14","ore_b":"2"}]},
+"ITG 4 SP":{"materie":[{"disciplina":"Geopedologia","codice":"GEE","cdc_a":"A51","ore_a":"4","cdc_b":"B14","ore_b":"2"},{"disciplina":"Costruzioni","codice":"PCI","cdc_a":"A37","ore_a":"6","cdc_b":"B14","ore_b":"5"},{"disciplina":"Sicurezza","codice":"GCS","cdc_a":"A37","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Topografia","codice":"TOP","cdc_a":"A37","ore_a":"4","cdc_b":"B14","ore_b":"2"}]},
+"ITG 5 SP":{"materie":[{"disciplina":"Geopedologia","codice":"GEE","cdc_a":"A51","ore_a":"4","cdc_b":"B14","ore_b":"2"},{"disciplina":"Costruzioni","codice":"PCI","cdc_a":"A37","ore_a":"7","cdc_b":"B14","ore_b":"6"},{"disciplina":"Sicurezza","codice":"GCS","cdc_a":"A37","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Topografia","codice":"TOP","cdc_a":"A37","ore_a":"4","cdc_b":"B14","ore_b":"2"}]},
+"ITA GAT 3 SP":{"materie":[{"disciplina":"Biotecnologie agrarie","codice":"BIOTEC","cdc_a":"A50","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Economia estimo marketing","codice":"EEMC","cdc_a":"A51","ore_a":"2","cdc_b":"B11","ore_b":"2"},{"disciplina":"Produzioni animali","codice":"PA","cdc_a":"A52","ore_a":"3","cdc_b":"B11","ore_b":"1"},{"disciplina":"Produzioni vegetali","codice":"PV","cdc_a":"A51","ore_a":"5","cdc_b":"B11","ore_b":"2"},{"disciplina":"Genio rurale","codice":"GENRUR","cdc_a":"A37","ore_a":"2","cdc_b":"B11","ore_b":"2"},{"disciplina":"Trasformazione dei prodotti","codice":"TP","cdc_a":"A34","ore_a":"2","cdc_b":"B11","ore_b":"1"}]},
+"ITA GAT 4 SP":{"materie":[{"disciplina":"Biotecnologie agrarie","codice":"BIOTEC","cdc_a":"A51","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Economia estimo marketing","codice":"EEMC","cdc_a":"A51","ore_a":"3","cdc_b":"B11","ore_b":"2"},{"disciplina":"Produzioni animali","codice":"PA","cdc_a":"A52","ore_a":"3","cdc_b":"B11","ore_b":"1"},{"disciplina":"Produzioni vegetali","codice":"PV","cdc_a":"A51","ore_a":"4","cdc_b":"B11","ore_b":"3"},{"disciplina":"Genio rurale","codice":"GENRUR","cdc_a":"A37","ore_a":"2","cdc_b":"B11","ore_b":"2"},{"disciplina":"Trasformazione dei prodotti","codice":"TP","cdc_a":"A34","ore_a":"2","cdc_b":"B11","ore_b":"1"}]},
+"ITA GAT 5 SP":{"materie":[{"disciplina":"Economia estimo marketing","codice":"EEMC","cdc_a":"A51","ore_a":"3","cdc_b":"B11","ore_b":"2"},{"disciplina":"Gestione ambiente e territorio","codice":"GEAT","cdc_a":"A51","ore_a":"4","cdc_b":"B11","ore_b":"2"},{"disciplina":"Produzioni animali","codice":"PA","cdc_a":"A52","ore_a":"2","cdc_b":"B11","ore_b":"1"},{"disciplina":"Produzioni vegetali","codice":"PV","cdc_a":"A51","ore_a":"4","cdc_b":"B11","ore_b":"3"},{"disciplina":"Genio rurale","codice":"GENRUR","cdc_a":"A37","ore_a":"2","cdc_b":"B11","ore_b":"1"},{"disciplina":"Trasformazione dei prodotti","codice":"TP","cdc_a":"A34","ore_a":"2","cdc_b":"B11","ore_b":"1"}]},
+"ITA PT 3 SP":{"materie":[{"disciplina":"Economia estimo marketing","codice":"EEMC","cdc_a":"A51","ore_a":"3","cdc_b":"B11","ore_b":"2"},{"disciplina":"Produzioni animali","codice":"PA","cdc_a":"A52","ore_a":"3","cdc_b":"B11","ore_b":"1"},{"disciplina":"Produzioni vegetali","codice":"PV","cdc_a":"A51","ore_a":"5","cdc_b":"B11","ore_b":"2"},{"disciplina":"Genio rurale","codice":"GENRUR","cdc_a":"A37","ore_a":"3","cdc_b":"B11","ore_b":"2"},{"disciplina":"Trasformazione dei prodotti","codice":"TP","cdc_a":"A34","ore_a":"2","cdc_b":"B11","ore_b":"1"}]},
+"ITA PT 4 SP":{"materie":[{"disciplina":"Biotecnologie agrarie","codice":"BIOTEC","cdc_a":"A50","ore_a":"2","cdc_b":"","ore_b":""},{"disciplina":"Economia estimo marketing","codice":"EEMC","cdc_a":"A51","ore_a":"2","cdc_b":"B11","ore_b":"1"},{"disciplina":"Produzioni animali","codice":"PA","cdc_a":"A52","ore_a":"3","cdc_b":"B11","ore_b":"1"},{"disciplina":"Produzioni vegetali","codice":"PV","cdc_a":"A51","ore_a":"4","cdc_b":"B11","ore_b":"3"},{"disciplina":"Genio rurale","codice":"GENRUR","cdc_a":"A37","ore_a":"2","cdc_b":"B11","ore_b":"2"},{"disciplina":"Trasformazione dei prodotti","codice":"TP","cdc_a":"A34","ore_a":"3","cdc_b":"B11","ore_b":"2"}]},
+"ITA PT 5 SP":{"materie":[{"disciplina":"Biotecnologie agrarie","codice":"BIOTEC","cdc_a":"A51","ore_a":"3","cdc_b":"B11","ore_b":"1"},{"disciplina":"Economia estimo marketing","codice":"EEMC","cdc_a":"A51","ore_a":"3","cdc_b":"B11","ore_b":"2"},{"disciplina":"Gestione ambiente e territorio","codice":"GEAT","cdc_a":"A51","ore_a":"2","cdc_b":"B11","ore_b":"1"},{"disciplina":"Produzioni animali","codice":"PA","cdc_a":"A52","ore_a":"2","cdc_b":"B11","ore_b":"1"},{"disciplina":"Produzioni vegetali","codice":"PV","cdc_a":"A51","ore_a":"4","cdc_b":"B11","ore_b":"3"},{"disciplina":"Trasformazione dei prodotti","codice":"TP","cdc_a":"A34","ore_a":"3","cdc_b":"B11","ore_b":"2"}]},
+"IPIA ELETTRO 3 SP":{"materie":[{"disciplina":"TEEA","codice":"TEEA","cdc_a":"A40","ore_a":"5","cdc_b":"B15","ore_b":"3"},{"disciplina":"TTIM","codice":"TTIMAI","cdc_a":"A40","ore_a":"5","cdc_b":"B15","ore_b":"3"},{"disciplina":"Lab. tecn. eser.","codice":"LTE","cdc_a":"---","ore_a":"4","cdc_b":"B15","ore_b":"4"},{"disciplina":"TMA","codice":"TMMA","cdc_a":"A42","ore_a":"4","cdc_b":"B17","ore_b":"3"}]},
+"IPIA ELETTRO 4 SP":{"materie":[{"disciplina":"TEEA","codice":"TEEA","cdc_a":"A40","ore_a":"5","cdc_b":"B15","ore_b":"3"},{"disciplina":"TTIM","codice":"TTIMAI","cdc_a":"A40","ore_a":"5","cdc_b":"B15","ore_b":"3"},{"disciplina":"Lab. tecn. eser.","codice":"LTE","cdc_a":"---","ore_a":"4","cdc_b":"B15","ore_b":"4"},{"disciplina":"TMA","codice":"TMMA","cdc_a":"A42","ore_a":"4","cdc_b":"B17","ore_b":"3"}]},
+"IPIA ELETTRO 5 SP":{"materie":[{"disciplina":"TEEA","codice":"TEEA","cdc_a":"A40","ore_a":"4","cdc_b":"B15","ore_b":"3"},{"disciplina":"TTIM","codice":"TTIMAI","cdc_a":"A40","ore_a":"6","cdc_b":"B15","ore_b":"3"},{"disciplina":"Lab. tecn. eser.","codice":"LTE","cdc_a":"---","ore_a":"5","cdc_b":"B15","ore_b":"5"},{"disciplina":"TMA","codice":"TMMA","cdc_a":"A42","ore_a":"3","cdc_b":"B17","ore_b":"3"}]},
+"IPIA MECC 3 SP":{"materie":[{"disciplina":"TEEA","codice":"TEEA","cdc_a":"A40","ore_a":"4","cdc_b":"B15","ore_b":"3"},{"disciplina":"TTIM Diagnostica","codice":"TTIMAI","cdc_a":"A42","ore_a":"5","cdc_b":"B17","ore_b":"3"},{"disciplina":"TMA","codice":"TMMA","cdc_a":"A42","ore_a":"5","cdc_b":"B17","ore_b":"3"},{"disciplina":"Lab. tecn. eser.","codice":"LTE","cdc_a":"---","ore_a":"4","cdc_b":"B17","ore_b":"4"}]},
+"IPIA MECC 4 SP":{"materie":[{"disciplina":"TEEA","codice":"TEEA","cdc_a":"A40","ore_a":"4","cdc_b":"B15","ore_b":"3"},{"disciplina":"TMA","codice":"TMMA","cdc_a":"A42","ore_a":"5","cdc_b":"B17","ore_b":"3"},{"disciplina":"TTIM Diagnostica","codice":"TTIMAI","cdc_a":"A42","ore_a":"5","cdc_b":"B17","ore_b":"3"},{"disciplina":"Lab. tecn. eser.","codice":"LTE","cdc_a":"---","ore_a":"4","cdc_b":"B17","ore_b":"4"}]},
+"IPIA MECC 5 SP":{"materie":[{"disciplina":"TEEA","codice":"TEEA","cdc_a":"A40","ore_a":"3","cdc_b":"B15","ore_b":"3"},{"disciplina":"TMA","codice":"TMMA","cdc_a":"A42","ore_a":"4","cdc_b":"B17","ore_b":"3"},{"disciplina":"TTIM Diagnostica","codice":"TTIMAI","cdc_a":"A42","ore_a":"6","cdc_b":"B17","ore_b":"3"},{"disciplina":"Lab. tecn. eser.","codice":"LTE","cdc_a":"---","ore_a":"5","cdc_b":"B17","ore_b":"5"}]}
+};
+
+const COMPOSIZIONI_RAW = [
+{"key":"ITI CHIM 3","piano_comune":"COMUNI 3-4","piano_specifico":"ITI CHIM 3 SP","classi":["ITI 3A","ITI 3B"]},
+{"key":"ITI CHIM 4","piano_comune":"COMUNI 3-4","piano_specifico":"ITI CHIM 4 SP","classi":["ITI 4A","ITI 4BL","ITI 4BL-A"]},
+{"key":"ITI CHIM 5","piano_comune":"COMUNI 5","piano_specifico":"ITI CHIM 5 SP","classi":["ITI 5A","ITI 5BL","ITI 5BL-A"]},
+{"key":"ITI ELETTRO 3","piano_comune":"COMUNI 3-4","piano_specifico":"ITI ELETTRO 3 SP","classi":["ITI 3C"]},
+{"key":"ITI ELETTRO 4","piano_comune":"COMUNI 3-4","piano_specifico":"ITI ELETTRO 4 SP","classi":["ITG 4 AC-C"]},
+{"key":"ITI ELETTRO 5","piano_comune":"COMUNI 5","piano_specifico":"ITI ELETTRO 5 SP","classi":["ITI 5C","ITI 5D"]},
+{"key":"ITI INF 3","piano_comune":"COMUNI 3-4","piano_specifico":"ITI INF 3 SP","classi":["ITI 3E","ITI 3 FL","ITI 3 FL-F"]},
+{"key":"ITI INF4","piano_comune":"COMUNI 3-4","piano_specifico":"ITI INF 4 SP","classi":["ITI 4E","ITI 4F"]},
+{"key":"ITI INF 5","piano_comune":"COMUNI 5","piano_specifico":"ITI INF 5 SP","classi":["ITI 5E","ITI 5F"]},
+{"key":"ITI MECC 3","piano_comune":"COMUNI 3-4","piano_specifico":"ITI MECC 3 SP","classi":["ITI 3G","ITI 3H"]},
+{"key":"ITI MECC 4","piano_comune":"COMUNI 3-4","piano_specifico":"ITI MECC 4 SP","classi":["ITI 4H","ITI 4G"]},
+{"key":"ITI MECC 5","piano_comune":"COMUNI 5","piano_specifico":"ITI MECC 5 SP","classi":["ITI 5G","ITI 5H"]},
+{"key":"ITI MODA 3","piano_comune":"COMUNI 3-4","piano_specifico":"ITI MODA 3 SP","classi":["ITI 3 FL-L"]},
+{"key":"ITI MODA 4","piano_comune":"COMUNI 3-4","piano_specifico":"ITI MODA 4 SP","classi":["ITI 4BL-L"]},
+{"key":"ITI MODA 5","piano_comune":"COMUNI 5","piano_specifico":"ITI MODA 5 SP","classi":["ITI 5BL-L"]},
+{"key":"ITG 3","piano_comune":"COMUNI 3-4","piano_specifico":"ITG 3 SP","classi":[]},
+{"key":"ITG 4","piano_comune":"COMUNI 3-4","piano_specifico":"ITG 4 SP","classi":["ITG 4 AC","ITG 4 AC-A"]},
+{"key":"ITG 5","piano_comune":"COMUNI 5","piano_specifico":"ITG 5 SP","classi":["ITG 5A"]},
+{"key":"ITA GAT 3","piano_comune":"COMUNI 3-4","piano_specifico":"ITA GAT 3 SP","classi":["ITA 3A","ITA 3B"]},
+{"key":"ITA GAT4","piano_comune":"COMUNI 3-4","piano_specifico":"ITA GAT 4 SP","classi":["ITA 4A","ITA 4B"]},
+{"key":"ITA GAT5","piano_comune":"COMUNI 5","piano_specifico":"ITA GAT 5 SP","classi":["ITA 5A"]},
+{"key":"ITA PT3","piano_comune":"COMUNI 3-4","piano_specifico":"ITA PT 3 SP","classi":["ITA 3C","ITA 3D"]},
+{"key":"ITA PT4","piano_comune":"COMUNI 3-4","piano_specifico":"ITA PT 4 SP","classi":["ITA 4C","ITA 4D"]},
+{"key":"ITA PT5","piano_comune":"COMUNI 5","piano_specifico":"ITA PT 5 SP","classi":["ITA 5C","ITA 5D"]},
+{"key":"IPIA ELETTRO 3","piano_comune":"IPIA COMUNI","piano_specifico":"IPIA ELETTRO 3 SP","classi":["IPIA 3NP","IPIA 3NP-N"]},
+{"key":"IPIA ELETTRO 4","piano_comune":"IPIA COMUNI","piano_specifico":"IPIA ELETTRO 4 SP","classi":["IPIA 4N"]},
+{"key":"IPIA ELETTRO 5","piano_comune":"IPIA COMUNI","piano_specifico":"IPIA ELETTRO 5 SP","classi":["IPIA 5N"]},
+{"key":"IPIA MECC 3","piano_comune":"IPIA COMUNI","piano_specifico":"IPIA MECC 3 SP","classi":["IPIA 3R","IPIA 3NP-P"]},
+{"key":"IPIA MECC 4","piano_comune":"IPIA COMUNI","piano_specifico":"IPIA MECC 4 SP","classi":["IPIA 4R"]},
+{"key":"IPIA MECC 5","piano_comune":"IPIA COMUNI","piano_specifico":"IPIA MECC 5 SP","classi":["IPIA 5R"]}
+];
+
+const ARTICOLAZIONI_RAW = [];
+
+function buildPianiRaw() {
+  const bienni = ["IPIA BIENNIO 1","IPIA BIENNIO 2","ITA BIENNIO 1","ITA BIENNIO 2",
+    "ITI BIENNIO 1","ITI BIENNIO 2 CHIM","ITI BIENNIO 2 ELETTRO","ITI BIENNIO 2 INF",
+    "ITI BIENNIO 2 MECC","ITG 1","ITG 2"];
+  const result = {};
+  bienni.forEach(k => { if (PIANI_RAW[k]) result[k] = JSON.parse(JSON.stringify(PIANI_RAW[k])); });
+  COMPOSIZIONI_RAW.forEach(comp => {
+    const comuni = PIANI_COMUNI_RAW[comp.piano_comune];
+    const specifico = PIANI_SPECIFICI_RAW[comp.piano_specifico];
+    const materie = [...JSON.parse(JSON.stringify(comuni.materie)), ...JSON.parse(JSON.stringify(specifico.materie))];
+    const ore_totali = materie.reduce((s, m) => s + parseInt(m.ore_a || 0), 0);
+    result[comp.key] = {nome: comp.key, classi: comp.classi || [], piano_comune: comp.piano_comune, piano_specifico: comp.piano_specifico, materie, ore_totali};
+  });
+  return result;
+}
+
+// ============================================================
+// STATE
+// ============================================================
+function normalizePiani(raw) {
+  const result = JSON.parse(JSON.stringify(raw));
+  Object.values(result).forEach(p => {
+    p.materie.forEach(m => {
+      if (m.cdc_atipica === undefined) {
+        if (m.cdc_a && m.cdc_a.includes('/')) {
+          const parts = m.cdc_a.split('/');
+          m.cdc_a = parts[0];
+          m.cdc_atipica = parts.slice(1).join('/');
+        } else {
+          m.cdc_atipica = '';
+        }
+      }
+    });
+  });
+  return result;
+}
+let piani = normalizePiani(buildPianiRaw());
+let db = JSON.parse(JSON.stringify(ASSEGNAZIONI_SEED));
+let filtered = [...db];
+let currentPage = 1;
+const PAGE_SIZE = 25;
+let sortCol = 'classe', sortDir = 1;
+let editingId = null;
+let currentRole = 'admin';
+let selectedPianoKey = null;
+let pianoAddClasseTarget = null;
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  populateFilters();
+  populateNewPianoSelects();
+  applyFilters();
+  renderPianiList();
+  renderDashboard();
+});
+
+function populateFilters() {
+  const pianoList = [...new Set(db.map(r=>r.piano))].sort();
+  const cdcs = [...new Set(db.map(r=>r.cdc_a).filter(Boolean))].sort();
+  const docenti = [...new Set(db.map(r=>r.docente_a).filter(Boolean))].sort();
+  const fp=document.getElementById('filterPiano');
+  pianoList.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;fp.appendChild(o)});
+  const fc=document.getElementById('filterCdc');
+  cdcs.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;fc.appendChild(o)});
+  const fd=document.getElementById('filterDocente');
+  docenti.forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;fd.appendChild(o)});
+  const fdc=document.getElementById('filterDocenteCdc');
+  cdcs.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;fdc.appendChild(o)});
+}
+
+function populateNewPianoSelects() {
+  const sel = document.getElementById('npCopia');
+  Object.keys(piani).sort().forEach(k => {
+    const o=document.createElement('option');o.value=k;o.textContent=k;sel.appendChild(o);
+  });
+}
+
+// ============================================================
+// PAGE NAV
+// ============================================================
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(el) el.classList.add('active');
+  const titles={assegnazioni:'Assegnazioni',piani:'Piani di Studio',docenti:'Docenti',dashboard:'Dashboard',export:'Esporta'};
+  document.getElementById('pageTitle').textContent=titles[name]||name;
+  document.getElementById('addBtn').style.display=(name==='assegnazioni'&&currentRole!=='viewer')?'flex':'none';
+  document.getElementById('addPianoBtn').style.display=(name==='piani'&&currentRole!=='viewer')?'flex':'none';
+  if(name==='docenti') renderDocenti();
+  if(name==='dashboard') renderDashboard();
+  if(name==='piani') renderPianiList();
+}
+
+// ============================================================
+// FILTERS / TABLE
+// ============================================================
+function applyFilters() {
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  const piano=document.getElementById('filterPiano').value;
+  const cdc=document.getElementById('filterCdc').value;
+  const doc=document.getElementById('filterDocente').value;
+  filtered=db.filter(r=>{
+    const txt=[r.piano,r.classe,r.disciplina,r.docente_a,r.docente_b,r.codice].join(' ').toLowerCase();
+    return(!q||txt.includes(q))&&(!piano||r.piano===piano)&&(!cdc||r.cdc_a===cdc)&&(!doc||r.docente_a===doc);
+  });
+  currentPage=1; renderTable();
+}
+function resetFilters(){['searchInput','filterPiano','filterCdc','filterDocente'].forEach(id=>document.getElementById(id).value='');applyFilters();}
+function sortBy(col){if(sortCol===col)sortDir*=-1;else{sortCol=col;sortDir=1;}document.querySelectorAll('thead th span').forEach(s=>s.textContent='');const el=document.getElementById('sort-'+col);if(el)el.textContent=sortDir===1?' ↑':' ↓';filtered.sort((a,b)=>(a[col]||'').localeCompare(b[col]||'','it')*sortDir);renderTable();}
+
+function renderTable() {
+  const tbody=document.getElementById('tableBody');
+  const total=filtered.length;
+  const pages=Math.ceil(total/PAGE_SIZE);
+  const start=(currentPage-1)*PAGE_SIZE;
+  const pageData=filtered.slice(start,start+PAGE_SIZE);
+  document.getElementById('resultsMeta').innerHTML=`Mostrando <strong>${total===0?0:start+1}–${Math.min(start+PAGE_SIZE,total)}</strong> di <strong>${total}</strong>`;
+  document.getElementById('recordCount').textContent=total+' record';
+  const canEdit=currentRole!=='viewer';
+  if(!pageData.length){tbody.innerHTML=`<tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">Nessun risultato</div></div></td></tr>`;renderPagination(pages);return;}
+  tbody.innerHTML=pageData.map(r=>`<tr>
+    <td style="color:var(--muted);font-size:.75rem">${r.piano}</td>
+    <td style="font-weight:600">${r.classe}</td>
+    <td>${r.disciplina}</td>
+    <td><span class="badge badge-cdc">${r.cdc_a}</span></td>
+    <td><span class="badge badge-ore">${r.ore_a}h</span></td>
+    <td>${r.docente_a||'<span style="color:var(--muted)">—</span>'}</td>
+    <td>${r.cdc_b?`<span class="badge badge-b">${r.cdc_b}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
+    <td>${r.docente_b||'<span style="color:var(--muted)">—</span>'}</td>
+    <td><div class="action-btns">${canEdit?`<button class="btn-icon edit" onclick="openEdit(${r.id})">✏️</button>`:''} ${currentRole==='admin'?`<button class="btn-icon del" onclick="deleteRecord(${r.id})">🗑</button>`:''}</div></td>
+  </tr>`).join('');
+  renderPagination(pages);
+}
+
+function renderPagination(pages) {
+  const el=document.getElementById('pagination');
+  if(pages<=1){el.innerHTML='';return;}
+  let html=`<button class="page-btn" onclick="gotoPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+  const range=[];
+  for(let i=1;i<=pages;i++){if(i===1||i===pages||Math.abs(i-currentPage)<=2)range.push(i);else if(range[range.length-1]!=='…')range.push('…');}
+  range.forEach(p=>{if(p==='…')html+=`<span style="color:var(--muted);padding:0 4px">…</span>`;else html+=`<button class="page-btn ${p===currentPage?'active-page':''}" onclick="gotoPage(${p})">${p}</button>`;});
+  html+=`<button class="page-btn" onclick="gotoPage(${currentPage+1})" ${currentPage===pages?'disabled':''}>›</button><span class="page-info">Pag. ${currentPage}/${pages}</span>`;
+  el.innerHTML=html;
+}
+function gotoPage(p){const pages=Math.ceil(filtered.length/PAGE_SIZE);if(p<1||p>pages)return;currentPage=p;renderTable();}
+
+// ============================================================
+// MODAL ASSEGNAZIONE
+// ============================================================
+function openAdd(){if(currentRole==='viewer')return;editingId=null;document.getElementById('modalTitle').textContent='Nuova Assegnazione';['fPiano','fClasse','fDisciplina','fCodice','fCdcA','fOreA','fCdcB','fDocenteA','fDocenteB','fPotenziamento'].forEach(id=>document.getElementById(id).value='');document.getElementById('modalOverlay').classList.add('open');}
+function openEdit(id){if(currentRole==='viewer')return;const r=db.find(x=>x.id===id);if(!r)return;editingId=id;document.getElementById('modalTitle').textContent='Modifica Assegnazione';document.getElementById('fPiano').value=r.piano;document.getElementById('fClasse').value=r.classe;document.getElementById('fDisciplina').value=r.disciplina;document.getElementById('fCodice').value=r.codice;document.getElementById('fCdcA').value=r.cdc_a;document.getElementById('fOreA').value=r.ore_a;document.getElementById('fCdcB').value=r.cdc_b;document.getElementById('fDocenteA').value=r.docente_a;document.getElementById('fDocenteB').value=r.docente_b;document.getElementById('fPotenziamento').value=r.potenziamento;document.getElementById('modalOverlay').classList.add('open');}
+function closeModal(e){if(e&&e.target!==e.currentTarget)return;e.currentTarget.classList.remove('open');}
+function closeModalById(id){document.getElementById(id).classList.remove('open');}
+function saveRecord(){
+  const rec={piano:document.getElementById('fPiano').value.trim(),classe:document.getElementById('fClasse').value.trim(),disciplina:document.getElementById('fDisciplina').value.trim(),codice:document.getElementById('fCodice').value.trim(),cdc_a:document.getElementById('fCdcA').value.trim(),ore_a:document.getElementById('fOreA').value.trim(),cdc_b:document.getElementById('fCdcB').value.trim(),docente_a:document.getElementById('fDocenteA').value.trim(),docente_b:document.getElementById('fDocenteB').value.trim(),potenziamento:document.getElementById('fPotenziamento').value.trim()};
+  if(!rec.classe||!rec.disciplina){toast('Inserisci almeno Classe e Disciplina','error');return;}
+  if(editingId!==null){const idx=db.findIndex(x=>x.id===editingId);db[idx]={...db[idx],...rec};toast('Aggiornato ✓','success');}
+  else{const nid=Math.max(0,...db.map(x=>x.id))+1;db.push({id:nid,...rec});toast('Aggiunto ✓','success');}
+  closeModalById('modalOverlay');applyFilters();
+}
+function deleteRecord(id){if(currentRole!=='admin')return;if(!confirm('Eliminare questa assegnazione?'))return;db=db.filter(x=>x.id!==id);filtered=filtered.filter(x=>x.id!==id);renderTable();toast('Eliminato','error');}
+
+// ============================================================
+// PIANI DI STUDIO
+// ============================================================
+function recalcOre(key){const p=piani[key];p.ore_totali=p.materie.reduce((s,m)=>s+(parseInt(m.ore_a)||0),0);}
+
+function filterPianiList(q) {
+  q=q.toLowerCase();
+  document.querySelectorAll('.piano-item').forEach(el=>{
+    el.style.display=el.dataset.nome.toLowerCase().includes(q)?'':'none';
+  });
+}
+
+function renderPianiList() {
+  const scroll=document.getElementById('pianiScroll');
+  const keys=Object.keys(piani).sort();
+  document.getElementById('pianiCount').textContent=keys.length;
+  scroll.innerHTML=keys.map(k=>{
+    const p=piani[k];
+    return `<div class="piano-item${selectedPianoKey===k?' selected':''}" data-nome="${k}" onclick="selectPiano('${k}')">
+      <div class="piano-item-name">${p.nome}</div>
+      <div class="piano-item-meta">
+        <span>📚 ${p.materie.length} materie</span>
+        <span>🏫 ${p.classi.length} classi</span>
+        <span class="badge badge-ore" style="font-size:.68rem;padding:1px 6px">${p.ore_totali}h</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectPiano(key) {
+  selectedPianoKey=key;
+  renderPianiList();
+  renderPianoDetail(key);
+}
+
+function renderPianoDetail(key) {
+  const p=piani[key];
+  const canEdit=currentRole!=='viewer';
+  recalcOre(key);
+  const oreTotal=p.ore_totali;
+
+  const detail=document.getElementById('pianoDetail');
+  detail.innerHTML=`
+    <div class="piano-detail-header">
+      <div>
+        <div class="piano-detail-title">${p.nome}</div>
+        <div style="margin-top:4px;display:flex;gap:8px;align-items:center">
+          <span class="ore-badge-total">⏱ ${oreTotal} ore/settimana</span>
+          <span style="font-size:.78rem;color:var(--muted)">${p.materie.length} materie · ${p.classi.length} classi</span>
+        </div>
+      </div>
+      <div class="piano-detail-actions">
+        <button class="btn btn-ghost" onclick="filterByPiano('${key}')">🔍 Vedi assegnazioni</button>
+        ${canEdit?`<button class="btn btn-success" onclick="openAddClasse('${key}')">+ Aggiungi classe</button>`:''}
+        ${currentRole==='admin'?`<button class="btn btn-danger" onclick="deletePiano('${key}')">🗑 Elimina piano</button>`:''}
+      </div>
+    </div>
+    <div class="piano-detail-body">
+      <div class="classi-section">
+        <div class="classi-section-title">Classi associate a questo piano</div>
+        <div class="classi-chips" id="classiChips-${key}">
+          ${p.classi.map(c=>`<span class="classe-chip">
+            ${c}
+            ${canEdit?`<button class="classe-chip-del" onclick="removeClasse('${key}','${c}')" title="Rimuovi classe">✕</button>`:''}
+          </span>`).join('')}
+        </div>
+        ${p.classi.length===0?'<div style="font-size:.8rem;color:var(--muted);font-style:italic">Nessuna classe associata</div>':''}
+      </div>
+
+      <div class="classi-section-title" style="margin-bottom:10px">Piano Orario</div>
+      <div class="materie-table-wrap">
+        <table class="materie-table">
+          <thead><tr>
+            <th style="width:25%">Disciplina</th>
+            <th style="width:8%">Cod.</th>
+            <th style="width:9%">CDC A</th>
+            <th style="width:9%">CDC atipica</th>
+            <th style="width:6%">Ore</th>
+            <th style="width:8%">ITP (B)</th>
+            <th style="width:6%">Ore ITP</th>
+            ${canEdit?'<th style="width:5%"></th>':''}
+          </tr></thead>
+          <tbody id="materieBody-${key}">
+            ${p.materie.map((m,i)=>`<tr>
+              <td><input value="${m.disciplina}" onchange="updateMateria('${key}',${i},'disciplina',this.value)" ${canEdit?'':'readonly'} style="${canEdit?'':'pointer-events:none;background:transparent;border:transparent'}"></td>
+              <td><input value="${m.codice}" onchange="updateMateria('${key}',${i},'codice',this.value)" ${canEdit?'':'readonly'} style="width:65px${canEdit?'':';pointer-events:none;background:transparent;border:transparent'}"></td>
+              <td><input value="${m.cdc_a}" onchange="updateMateria('${key}',${i},'cdc_a',this.value)" ${canEdit?'':'readonly'} style="width:65px${canEdit?'':';pointer-events:none;background:transparent;border:transparent'}"></td>
+              <td><input value="${m.cdc_atipica||''}" onchange="updateMateria('${key}',${i},'cdc_atipica',this.value)" ${canEdit?'':'readonly'} style="width:65px${canEdit?'':';pointer-events:none;background:transparent;border:transparent'}"></td>
+              <td><input type="number" min="0" max="40" value="${m.ore_a}" onchange="updateMateria('${key}',${i},'ore_a',this.value)" ${canEdit?'':'readonly'} style="width:45px${canEdit?'':';pointer-events:none;background:transparent;border:transparent'}"></td>
+              <td><input value="${m.cdc_b||''}" onchange="updateMateria('${key}',${i},'cdc_b',this.value)" ${canEdit?'':'readonly'} style="width:65px${canEdit?'':';pointer-events:none;background:transparent;border:transparent'}"></td>
+              <td><input type="number" min="0" max="40" value="${m.ore_b||''}" onchange="updateMateria('${key}',${i},'ore_b',this.value)" ${canEdit?'':'readonly'} style="width:45px${canEdit?'':';pointer-events:none;background:transparent;border:transparent'}"></td>
+              ${canEdit?`<td><button class="btn-icon del" onclick="removeMateria('${key}',${i})">✕</button></td>`:''}
+            </tr>`).join('')}
+            ${canEdit?`<tr class="aggiungi-materia-row">
+              <td><input id="nm-disc-${key}" placeholder="+ Nuova materia…" style="width:100%;font-style:italic;color:var(--muted)" onkeydown="if(event.key==='Enter')addMateria('${key}')"></td>
+              <td><input id="nm-cod-${key}" placeholder="COD" style="width:65px"></td>
+              <td><input id="nm-cdc-${key}" placeholder="A00" style="width:65px"></td>
+              <td><input id="nm-cdcat-${key}" placeholder="A00" style="width:65px"></td>
+              <td><input id="nm-ore-${key}" type="number" min="0" max="40" placeholder="0" style="width:45px"></td>
+              <td><input id="nm-cdcb-${key}" placeholder="B00" style="width:65px"></td>
+              <td><input id="nm-oreb-${key}" type="number" min="0" max="40" placeholder="0" style="width:45px"></td>
+              <td><button class="btn-icon" onclick="addMateria('${key}')" title="Aggiungi">+</button></td>
+            </tr>`:''}
+          </tbody>
+          <tfoot><tr class="ore-total-row">
+            <td colspan="3">Totale ore settimanali</td>
+            <td id="oreTotal-${key}">${oreTotal}</td>
+            <td colspan="${canEdit?'2':'1'}"></td>
+          </tr></tfoot>
+        </table>
+      </div>
+    </div>`;
+}
+
+function updateMateria(key,i,field,val){
+  piani[key].materie[i][field]=val;
+  recalcOre(key);
+  const el=document.getElementById('oreTotal-'+key);
+  if(el) el.textContent=piani[key].ore_totali;
+  // update sidebar badge
+  renderPianiList();
+  toast('Piano aggiornato','success');
+}
+
+function removeMateria(key,i){
+  if(!confirm('Rimuovere questa materia dal piano?'))return;
+  piani[key].materie.splice(i,1);
+  recalcOre(key);
+  renderPianoDetail(key);
+  renderPianiList();
+  toast('Materia rimossa','success');
+}
+
+function addMateria(key){
+  const disc=document.getElementById('nm-disc-'+key).value.trim();
+  if(!disc){toast('Inserisci il nome della disciplina','error');return;}
+  const cod=document.getElementById('nm-cod-'+key).value.trim();
+  const cdc=document.getElementById('nm-cdc-'+key).value.trim();
+  const ore=document.getElementById('nm-ore-'+key).value.trim()||'0';
+  const cdcb=document.getElementById('nm-cdcb-'+key).value.trim();
+  const cdcat=document.getElementById('nm-cdcat-'+key).value.trim();
+  const oreb=document.getElementById('nm-oreb-'+key).value.trim();
+  piani[key].materie.push({disciplina:disc,codice:cod,cdc_a:cdc,cdc_atipica:cdcat,ore_a:ore,cdc_b:cdcb,ore_b:oreb});
+  recalcOre(key);
+  renderPianoDetail(key);
+  renderPianiList();
+  toast('Materia aggiunta ✓','success');
+}
+
+function removeClasse(key,classe){
+  if(!confirm(`Rimuovere la classe ${classe} dal piano ${key}?\nLE ASSEGNAZIONI DI QUESTA CLASSE NON VERRANNO ELIMINATE.`))return;
+  piani[key].classi=piani[key].classi.filter(c=>c!==classe);
+  renderPianoDetail(key);
+  renderPianiList();
+  toast(`Classe ${classe} rimossa dal piano`,'success');
+}
+
+function openAddClasse(key){
+  pianoAddClasseTarget=key;
+  document.getElementById('acNome').value='';
+  document.getElementById('addClasseOverlay').classList.add('open');
+}
+
+function confirmAddClasse(){
+  const nome=document.getElementById('acNome').value.trim().toUpperCase();
+  if(!nome){toast('Inserisci il nome della classe','error');return;}
+  const key=pianoAddClasseTarget;
+  if(piani[key].classi.includes(nome)){toast('Classe già presente in questo piano','error');return;}
+  // Add class to piano
+  piani[key].classi.push(nome);
+  // Generate blank assignments for each materia
+  const newRecs=piani[key].materie.map(m=>{
+    const nid=Math.max(0,...db.map(x=>x.id))+1+Math.random();
+    return{id:Math.round(nid),piano:key,classe:nome,disciplina:m.disciplina,codice:m.codice,cdc_a:m.cdc_a,cdc_atipica:m.cdc_atipica||'',ore_a:m.ore_a,cdc_b:m.cdc_b,ore_b:m.ore_b||'',docente_a:'',docente_b:'',potenziamento:''};
+  });
+  db.push(...newRecs);
+  closeModalById('addClasseOverlay');
+  renderPianoDetail(key);
+  renderPianiList();
+  applyFilters();
+  toast(`Classe ${nome} aggiunta con ${newRecs.length} assegnazioni generate ✓`,'success');
+}
+
+function openNewPiano(){
+  document.getElementById('npNome').value='';
+  document.getElementById('npCopia').value='';
+  document.getElementById('newPianoOverlay').classList.add('open');
+}
+
+function createNewPiano(){
+  const nome=document.getElementById('npNome').value.trim().toUpperCase();
+  if(!nome){toast('Inserisci il nome del piano','error');return;}
+  if(piani[nome]){toast('Piano già esistente','error');return;}
+  const copia=document.getElementById('npCopia').value;
+  let materie=[];
+  if(copia&&piani[copia]) materie=JSON.parse(JSON.stringify(piani[copia].materie));
+  piani[nome]={nome,classi:[],materie,ore_totali:materie.reduce((s,m)=>s+(parseInt(m.ore_a)||0),0)};
+  // Update select
+  const sel=document.getElementById('npCopia');
+  const o=document.createElement('option');o.value=nome;o.textContent=nome;sel.appendChild(o);
+  closeModalById('newPianoOverlay');
+  selectedPianoKey=nome;
+  renderPianiList();
+  renderPianoDetail(nome);
+  toast(`Piano "${nome}" creato${copia?' (copiato da '+copia+')':''}  ✓`,'success');
+}
+
+function deletePiano(key){
+  if(currentRole!=='admin')return;
+  const nClassi=piani[key].classi.length;
+  if(!confirm(`Eliminare il piano "${key}"?\n${nClassi>0?`ATTENZIONE: ${nClassi} classi resteranno senza piano associato.`:''}`))return;
+  delete piani[key];
+  selectedPianoKey=null;
+  renderPianiList();
+  document.getElementById('pianoDetail').innerHTML=`<div class="piano-empty"><div class="piano-empty-icon">📋</div><div style="font-size:.9rem">Piano eliminato</div></div>`;
+  toast(`Piano "${key}" eliminato`,'error');
+}
+
+function filterByPiano(key){
+  showPage('assegnazioni',document.querySelector('.nav-item'));
+  document.querySelectorAll('.nav-item')[0].classList.add('active');
+  document.querySelectorAll('.nav-item').forEach((n,i)=>{if(i!==0)n.classList.remove('active');});
+  document.getElementById('filterPiano').value=key;
+  applyFilters();
+}
+
+// ============================================================
+// DOCENTI
+// ============================================================
+function renderDocenti(){
+  const q=document.getElementById('searchDocente').value.toLowerCase();
+  const cdc=document.getElementById('filterDocenteCdc').value;
+  const map={};
+  db.forEach(r=>{
+    [r.docente_a,r.docente_b].forEach((d,idx)=>{
+      if(!d)return;
+      const cdcKey=idx===0?r.cdc_a:r.cdc_b;
+      if(!map[d])map[d]={name:d,cdcs:new Set(),classi:new Set(),ore:0,discipline:new Set()};
+      if(cdcKey)map[d].cdcs.add(cdcKey);
+      map[d].classi.add(r.classe);
+      map[d].ore+=parseInt(r.ore_a)||0;
+      map[d].discipline.add(r.disciplina);
+    });
+  });
+  let docenti=Object.values(map).sort((a,b)=>a.name.localeCompare(b.name,'it'));
+  if(q)docenti=docenti.filter(d=>d.name.toLowerCase().includes(q));
+  if(cdc)docenti=docenti.filter(d=>d.cdcs.has(cdc));
+  const grid=document.getElementById('docentiGrid');
+  if(!docenti.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-state-icon">👤</div><div>Nessun docente trovato</div></div>';return;}
+  grid.innerHTML=docenti.map(d=>`<div class="docente-card" onclick="filterByDocente('${d.name}')">
+    <div class="docente-name">${d.name}</div>
+    <div class="docente-tags">${[...d.cdcs].map(c=>`<span class="badge badge-cdc">${c}</span>`).join('')}</div>
+    <div style="font-size:.75rem;color:var(--muted)">${d.classi.size} classi · ${d.discipline.size} materie</div>
+    <div style="font-size:.72rem;color:var(--muted);margin-top:4px">${[...d.discipline].slice(0,3).join(', ')}${d.discipline.size>3?'…':''}</div>
+  </div>`).join('');
+}
+
+function filterByDocente(name){
+  showPage('assegnazioni',null);
+  document.querySelectorAll('.nav-item')[0].classList.add('active');
+  document.querySelectorAll('.nav-item').forEach((n,i)=>{if(i!==0)n.classList.remove('active');});
+  document.getElementById('filterDocente').value=name;
+  applyFilters();
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard(){
+  const tu=db.length,du=new Set(db.map(r=>r.docente_a).filter(Boolean)).size,cu=new Set(db.map(r=>r.classe).filter(Boolean)).size,pu=Object.keys(piani).length;
+  document.getElementById('statsGrid').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Assegnazioni</div><div class="stat-value" style="color:var(--accent)">${tu}</div><div class="stat-sub">Registrate</div></div>
+    <div class="stat-card"><div class="stat-label">Docenti</div><div class="stat-value" style="color:var(--accent2)">${du}</div><div class="stat-sub">CDC A</div></div>
+    <div class="stat-card"><div class="stat-label">Classi</div><div class="stat-value" style="color:var(--green)">${cu}</div><div class="stat-sub">Attive</div></div>
+    <div class="stat-card"><div class="stat-label">Piani</div><div class="stat-value" style="color:var(--yellow)">${pu}</div><div class="stat-sub">Di studio</div></div>`;
+  const maxOre=Math.max(...ORE_DATA.map(o=>Math.max(o.servono,o.dato)));
+  document.getElementById('oreGrid').innerHTML=ORE_DATA.map(o=>{
+    const dc=o.diff===0?'diff-ok':(Math.abs(o.diff)>5?'diff-bad':'diff-warn');
+    const ds=o.diff===0?'✓ ok':(o.diff>0?`+${o.diff}`:`${o.diff}`);
+    return`<div class="ore-card"><div class="ore-card-header"><span class="ore-cdc">${o.cdc}</span><span class="ore-diff ${dc}">${ds}</span></div>
+      <div class="ore-bars">
+        <div class="ore-bar-row"><span style="width:55px">Necessarie</span><div class="ore-bar-wrap"><div class="ore-bar-fill bar-servono" style="width:${(o.servono/maxOre*100).toFixed(1)}%"></div></div><span>${o.servono}</span></div>
+        <div class="ore-bar-row"><span style="width:55px">Assegnate</span><div class="ore-bar-wrap"><div class="ore-bar-fill bar-dato" style="width:${(o.dato/maxOre*100).toFixed(1)}%"></div></div><span>${o.dato}</span></div>
+      </div></div>`;
+  }).join('');
+  const pc={};db.forEach(r=>{if(r.piano)pc[r.piano]=(pc[r.piano]||0)+1;});
+  const sorted=Object.entries(pc).sort((a,b)=>b[1]-a[1]).slice(0,15);
+  const mx=sorted[0]?.[1]||1;
+  document.getElementById('pianoChart').innerHTML=sorted.map(([p,c])=>`<div style="display:flex;align-items:center;gap:10px;font-size:.8rem">
+    <span style="width:160px;color:var(--muted);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${p}">${p}</span>
+    <div style="flex:1;height:20px;background:var(--surface2);border-radius:4px;overflow:hidden"><div style="width:${(c/mx*100).toFixed(1)}%;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:4px"></div></div>
+    <span style="width:30px;color:var(--text);font-weight:600">${c}</span>
+  </div>`).join('');
+}
+
+// ============================================================
+// ROLES
+// ============================================================
+function switchRole(role){
+  currentRole=role;
+  const labels={admin:'Admin',segreteria:'Segreteria',viewer:'Visualizzatore'};
+  document.getElementById('roleLabel').textContent=labels[role];
+  document.getElementById('addBtn').style.display=(document.getElementById('page-assegnazioni').classList.contains('active')&&role!=='viewer')?'flex':'none';
+  document.getElementById('addPianoBtn').style.display=(document.getElementById('page-piani').classList.contains('active')&&role!=='viewer')?'flex':'none';
+  if(selectedPianoKey) renderPianoDetail(selectedPianoKey);
+  renderTable();
+  toast(`Ruolo: ${labels[role]}`,'success');
+}
+
+// ============================================================
+// EXPORT
+// ============================================================
+function toCSV(data){
+  const h=['Piano','Classe','Disciplina','Codice','CDC A','Ore','CDC B','Docente A','Docente B','Potenziamento'];
+  const rows=data.map(r=>[r.piano,r.classe,r.disciplina,r.codice,r.cdc_a,r.ore_a,r.cdc_b,r.docente_a,r.docente_b,r.potenziamento].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(','));
+  return[h.join(','),...rows].join('\n');
+}
+function dl(csv,fn){const b=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=fn;a.click();URL.revokeObjectURL(u);toast('CSV scaricato ✓','success');}
+function exportCSV(mode){dl(toCSV(mode==='all'?db:filtered),`assegnazioni_${mode}_${new Date().toISOString().slice(0,10)}.csv`);}
+function exportDocentiCSV(){
+  const map={};
+  db.forEach(r=>{if(r.docente_a){if(!map[r.docente_a])map[r.docente_a]={d:r.docente_a,cdc:r.cdc_a,cl:new Set(),ore:0};map[r.docente_a].cl.add(r.classe);map[r.docente_a].ore+=parseInt(r.ore_a)||0;}});
+  const rows=Object.values(map).sort((a,b)=>a.d.localeCompare(b.d,'it'));
+  const csv=['Docente,CDC,N.Classi,Ore Totali',...rows.map(r=>`"${r.d}","${r.cdc}",${r.cl.size},${r.ore}`)].join('\n');
+  dl(csv,`docenti_${new Date().toISOString().slice(0,10)}.csv`);
+}
+function exportPianiCSV(){
+  const rows=['Piano,Classi,Disciplina,Codice,CDC A,CDC atipica,Ore,ITP,Ore ITP'];
+  Object.values(piani).forEach(p=>{
+    p.materie.forEach(m=>{rows.push(`"${p.nome}","${p.classi.join('|')}","${m.disciplina}","${m.codice}","${m.cdc_a}","${m.cdc_atipica||''}","${m.ore_a}","${m.cdc_b||''}","${m.ore_b||''}"`);});
+  });
+  dl(rows.join('\n'),`piani_${new Date().toISOString().slice(0,10)}.csv`);
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function toast(msg,type='success'){
+  const c=document.getElementById('toastContainer');
+  const t=document.createElement('div');
+  t.className=`toast ${type}`;
+  t.innerHTML=`<span>${type==='success'?'✓':'✕'}</span> ${msg}`;
+  c.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateY(10px)';t.style.transition='.3s';setTimeout(()=>t.remove(),300);},2800);
+}
+</script>
+</body>
+</html>
