@@ -361,6 +361,8 @@ tbody td{padding:9px 14px;vertical-align:middle}
             <div class="ore-card" style="padding:18px"><div style="font-weight:600;margin-bottom:6px">📋 CSV piani di studio</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Esporta tutti i piani di studio con le materie.</div><button class="btn btn-ghost" onclick="exportPianiCSV()">Scarica piani</button></div>
             <div class="ore-card" style="padding:18px"><div style="font-weight:600;margin-bottom:6px">👥 Riepilogo docenti</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Ore totali per docente.</div><button class="btn btn-ghost" onclick="exportDocentiCSV()">Scarica docenti</button></div>
             <div class="ore-card" style="padding:18px;border:1px solid var(--accent)"><div style="font-weight:600;margin-bottom:6px">📥 Importa CSV assegnazioni</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Carica un CSV con header: Piano, Classe, Disciplina, Codice, CDC A, Ore, CDC B, Docente A, Docente B, Potenziamento</div><input type="file" id="importFile" accept=".csv" style="display:none" onchange="importCSV(this)"><button class="btn btn-primary" onclick="document.getElementById('importFile').click()">Carica CSV</button></div>
+            <div class="ore-card" style="padding:18px;border:1px solid var(--green)"><div style="font-weight:600;margin-bottom:6px">💾 Backup completo JSON</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Esporta tutto lo stato (assegnazioni, dipartimenti, classi) in un file JSON.</div><button class="btn btn-primary" onclick="exportJSON()">Scarica JSON</button></div>
+            <div class="ore-card" style="padding:18px;border:1px solid var(--yellow)"><div style="font-weight:600;margin-bottom:6px">📂 Ripristina da JSON</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Carica un backup JSON per ripristinare tutto lo stato.</div><input type="file" id="importJSONFile" accept=".json" style="display:none" onchange="importJSON(this)"><button class="btn btn-ghost" onclick="document.getElementById('importJSONFile').click()">Carica JSON</button></div>
           </div>
         </div>
       </div>
@@ -1346,7 +1348,39 @@ function toCSV(data){
   return[h.join(','),...rows].join('\n');
 }
 function dl(csv,fn){const b=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=fn;a.click();URL.revokeObjectURL(u);toast('CSV scaricato ✓','success');}
+function dlJSON(obj,fn){const b=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=fn;a.click();URL.revokeObjectURL(u);}
 function exportCSV(mode){dl(toCSV(mode==='all'?db:filtered),`assegnazioni_${mode}_${new Date().toISOString().slice(0,10)}.csv`);}
+function exportJSON(){
+  const backup={
+    version:1,
+    date:new Date().toISOString(),
+    organico_db:db,
+    organico_dip:JSON.parse(localStorage.getItem('organico_dip')||'{}'),
+    organico_classidb:classiDB,
+    organico_composizioni:JSON.parse(localStorage.getItem('organico_composizioni')||'null')
+  };
+  dlJSON(backup,`organico_backup_${new Date().toISOString().slice(0,10)}.json`);
+  toast('Backup JSON scaricato ✓','success');
+}
+function importJSON(input){
+  const file=input.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data.version||!data.organico_db){toast('File JSON non valido','error');return;}
+      if(!confirm('Sovrascrivere tutti i dati con il backup?\nQuesta operazione non è reversibile.'))return;
+      localStorage.setItem('organico_db',JSON.stringify(data.organico_db));
+      if(data.organico_dip) localStorage.setItem('organico_dip',JSON.stringify(data.organico_dip));
+      if(data.organico_classidb) localStorage.setItem('organico_classidb',JSON.stringify(data.organico_classidb));
+      if(data.organico_composizioni) localStorage.setItem('organico_composizioni',JSON.stringify(data.organico_composizioni));
+      toast('Backup ripristinato. Ricarico...','success');
+      setTimeout(()=>location.reload(),1200);
+    }catch(err){toast('Errore lettura JSON: '+err.message,'error');}
+  };
+  reader.readAsText(file);
+  input.value='';
+}
 function exportDocentiCSV(){
   const map={};
   db.forEach(r=>{if(r.docente_a){if(!map[r.docente_a])map[r.docente_a]={d:r.docente_a,cdc:r.cdc_a,cl:new Set(),ore:0};map[r.docente_a].cl.add(r.classe);map[r.docente_a].ore+=parseInt(r.ore_a)||0;}});
