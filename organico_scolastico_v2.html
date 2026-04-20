@@ -182,6 +182,9 @@ tbody td{padding:9px 14px;vertical-align:middle}
       <div class="nav-item" onclick="showPage('docenti',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Docenti
       </div>
+      <div class="nav-item" onclick="showPage('classi',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Classi
+      </div>
       <div class="nav-item" onclick="showPage('dashboard',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="13" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="17" y="5" width="4" height="16" rx="1"/></svg>Dashboard
       </div>
@@ -229,7 +232,7 @@ tbody td{padding:9px 14px;vertical-align:middle}
               <th onclick="sortBy('cdc_a')">CDC A <span id="sort-cdc_a"></span></th>
               <th onclick="sortBy('ore_a')">Ore <span id="sort-ore_a"></span></th>
               <th onclick="sortBy('docente_a')">Docente A <span id="sort-docente_a"></span></th>
-              <th>CDC B</th><th>Docente B</th><th></th>
+              <th>CDC atipica</th><th>Ore B</th><th>Docente B</th><th></th>
             </tr></thead>
             <tbody id="tableBody"></tbody>
           </table>
@@ -261,7 +264,9 @@ tbody td{padding:9px 14px;vertical-align:middle}
       <div class="page" id="page-docenti">
         <div class="filters-bar">
           <div class="filter-group"><span class="filter-label">🔍</span><input type="text" style="width:220px" id="searchDocente" placeholder="Cerca docente…" oninput="renderDocenti()"></div>
+          <div class="filter-group"><span class="filter-label">Dipartimento</span><select id="filterDipartimento" onchange="renderDocenti()"><option value="">Tutti</option></select></div>
           <div class="filter-group"><span class="filter-label">CDC</span><select id="filterDocenteCdc" onchange="renderDocenti()"><option value="">Tutti</option></select></div>
+          <div class="filter-group"><span id="docentiCount" style="font-size:.82rem;color:var(--muted)"></span></div>
         </div>
         <div class="docenti-grid" id="docentiGrid"></div>
       </div>
@@ -276,6 +281,77 @@ tbody td{padding:9px 14px;vertical-align:middle}
       </div>
 
       <!-- EXPORT -->
+      <!-- CLASSI -->
+      <div class="page" id="page-classi">
+        <!-- form aggiunta -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:16px">
+          <div style="font-weight:600;font-size:.88rem;margin-bottom:12px">Aggiungi classe</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+            <div>
+              <div style="font-size:.72rem;color:var(--muted);margin-bottom:4px">Plesso</div>
+              <select id="ncPlesso" style="width:80px">
+                <option value="">—</option>
+                <option value="IPIA">IPIA</option>
+                <option value="ITI">ITI</option>
+                <option value="ITA">ITA</option>
+                <option value="ITG">ITG</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:.72rem;color:var(--muted);margin-bottom:4px">Nome classe</div>
+              <input id="ncNome" placeholder="es. 3A" style="width:80px">
+            </div>
+            <div id="ncPianoWrap">
+              <div style="font-size:.72rem;color:var(--muted);margin-bottom:4px">Piano</div>
+              <select id="ncPiano" style="min-width:180px"><option value="">— seleziona —</option></select>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;padding-bottom:2px">
+              <input type="checkbox" id="ncArticolata" onchange="toggleArticolata()">
+              <label for="ncArticolata" style="font-size:.82rem;cursor:pointer">Articolata</label>
+            </div>
+          </div>
+          <!-- campi articolata -->
+          <div id="ncArticolataFields" style="display:none;margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+            <div style="font-size:.75rem;color:var(--muted);margin-bottom:8px">Piano comune + due sottogruppi</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:8px">
+              <div>
+                <div style="font-size:.72rem;color:var(--muted);margin-bottom:4px">Piano comune</div>
+                <select id="ncComune" style="min-width:160px"><option value="">— seleziona —</option></select>
+              </div>
+            </div>
+            <div style="display:flex;gap:16px;flex-wrap:wrap">
+              <div style="display:flex;gap:8px;align-items:flex-end">
+                <div>
+                  <div style="font-size:.72rem;color:var(--muted);margin-bottom:4px">Sottogruppo 1</div>
+                  <input id="ncSg1Nome" placeholder="es. IPIA 3NP-N" style="width:130px">
+                </div>
+                <div>
+                  <div style="font-size:.72rem;color:var(--muted);margin-bottom:4px">Piano specifico 1</div>
+                  <select id="ncSg1Piano" style="min-width:180px"><option value="">— seleziona —</option></select>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;align-items:flex-end">
+                <div>
+                  <div style="font-size:.72rem;color:var(--muted);margin-bottom:4px">Sottogruppo 2</div>
+                  <input id="ncSg2Nome" placeholder="es. IPIA 3NP-P" style="width:130px">
+                </div>
+                <div>
+                  <div style="font-size:.72rem;color:var(--muted);margin-bottom:4px">Piano specifico 2</div>
+                  <select id="ncSg2Piano" style="min-width:180px"><option value="">— seleziona —</option></select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="aggiungiNuovaClasse()">+ Aggiungi</button>
+            <button class="btn btn-primary" onclick="generaAssegnazioni()">⚡ Genera assegnazioni</button>
+            <button class="btn btn-ghost" style="font-size:.75rem;color:var(--muted)" onclick="resetClassiDB()">&#x21BA; Ripristina lista classi</button>
+          </div>
+        </div>
+        <div id="classiList"></div>
+      </div>
+
+
       <div class="page" id="page-export">
         <div style="max-width:560px">
           <div class="section-title" style="margin-bottom:16px">Esporta Dati</div>
@@ -284,6 +360,7 @@ tbody td{padding:9px 14px;vertical-align:middle}
             <div class="ore-card" style="padding:18px"><div style="font-weight:600;margin-bottom:6px">🔍 CSV selezione corrente</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Solo i record filtrati nella vista Assegnazioni.</div><button class="btn btn-ghost" onclick="exportCSV('filtered')">Scarica filtrato</button></div>
             <div class="ore-card" style="padding:18px"><div style="font-weight:600;margin-bottom:6px">📋 CSV piani di studio</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Esporta tutti i piani di studio con le materie.</div><button class="btn btn-ghost" onclick="exportPianiCSV()">Scarica piani</button></div>
             <div class="ore-card" style="padding:18px"><div style="font-weight:600;margin-bottom:6px">👥 Riepilogo docenti</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Ore totali per docente.</div><button class="btn btn-ghost" onclick="exportDocentiCSV()">Scarica docenti</button></div>
+            <div class="ore-card" style="padding:18px;border:1px solid var(--accent)"><div style="font-weight:600;margin-bottom:6px">📥 Importa CSV assegnazioni</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Carica un CSV con header: Piano, Classe, Disciplina, Codice, CDC A, Ore, CDC B, Docente A, Docente B, Potenziamento</div><input type="file" id="importFile" accept=".csv" style="display:none" onchange="importCSV(this)"><button class="btn btn-primary" onclick="document.getElementById('importFile').click()">Carica CSV</button></div>
           </div>
         </div>
       </div>
@@ -465,7 +542,54 @@ function normalizePiani(raw) {
   return result;
 }
 let piani = normalizePiani(buildPianiRaw());
-let db = JSON.parse(JSON.stringify(ASSEGNAZIONI_SEED));
+let db = (function(){
+  try{
+    const s=localStorage.getItem('organico_db');
+    const raw=s?JSON.parse(s):JSON.parse(JSON.stringify(ASSEGNAZIONI_SEED));
+    const out=[];
+    raw.forEach(r=>{
+      r.cdc_a=(r.cdc_a||'').split('/')[0].trim();
+      r.cdc_b=(r.cdc_b||'').split('/')[0].trim();
+      if(/italiano\s+e\s+storia/i.test(r.disciplina)){
+        const oreIta=Math.max(1,(parseInt(r.ore_a)||0)-2);
+        out.push({...r,disciplina:'Italiano',codice:'ITA',ore_a:String(oreIta)});
+        out.push({...r,id:r.id+'_sto',disciplina:'Storia',codice:'STO',ore_a:'2'});
+      } else {
+        out.push(r);
+      }
+    });
+    return out;
+  }catch(e){return JSON.parse(JSON.stringify(ASSEGNAZIONI_SEED));}
+})();
+
+const CDC_DIPARTIMENTO = {
+  'A12':'Italiano','A18':'Italiano',
+  'A34':'Chimica','B12':'Chimica',
+  'A26':'Matematica','A27':'Matematica',
+  'AB24':'Inglese',
+  'A48':'Scienze Motorie',
+  'A50':'Scienze e Biologia',
+  'A51':'Agraria','A52':'Agraria','B11':'Agraria',
+  'A20':'Fisica','B03':'Fisica',
+  'A46':'Diritto',
+  'A37':'Geometri e TTRG','B14':'Geometri e TTRG',
+  'A40':'Elettrotecnica','B15':'Elettrotecnica','---':'Elettrotecnica',
+  'RC':'Religione',
+  'A41':'Informatica','B16':'Informatica',
+  'A42':'Meccanica','B17':'Meccanica',
+  'A44':'Moda','B18':'Moda'
+};
+let dipartimentoOverride = (function(){try{const s=localStorage.getItem('organico_dip');return s?JSON.parse(s):{}}catch(e){return {};}})();
+function normCdc(cdc){return (cdc||'').split('/')[0].trim();}
+function getDipartimento(docente, cdcs){
+  if(dipartimentoOverride[docente])return dipartimentoOverride[docente];
+  for(const cdc of cdcs){
+    const k=normCdc(cdc);
+    if(CDC_DIPARTIMENTO[k])return CDC_DIPARTIMENTO[k];
+  }
+  return 'Altro';
+}
+function saveDipartimentoOverride(){try{localStorage.setItem('organico_dip',JSON.stringify(dipartimentoOverride));}catch(e){}}
 let filtered = [...db];
 let currentPage = 1;
 const PAGE_SIZE = 25;
@@ -515,13 +639,14 @@ function showPage(name, el) {
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   if(el) el.classList.add('active');
-  const titles={assegnazioni:'Assegnazioni',piani:'Piani di Studio',docenti:'Docenti',dashboard:'Dashboard',export:'Esporta'};
+  const titles={assegnazioni:'Assegnazioni',piani:'Piani di Studio',docenti:'Docenti',classi:'Classi',dashboard:'Dashboard',export:'Esporta'};
   document.getElementById('pageTitle').textContent=titles[name]||name;
   document.getElementById('addBtn').style.display=(name==='assegnazioni'&&currentRole!=='viewer')?'flex':'none';
   document.getElementById('addPianoBtn').style.display=(name==='piani'&&currentRole!=='viewer')?'flex':'none';
   if(name==='docenti') renderDocenti();
   if(name==='dashboard') renderDashboard();
   if(name==='piani') renderPianiList();
+  if(name==='classi') renderClassi();
 }
 
 // ============================================================
@@ -550,7 +675,7 @@ function renderTable() {
   document.getElementById('resultsMeta').innerHTML=`Mostrando <strong>${total===0?0:start+1}–${Math.min(start+PAGE_SIZE,total)}</strong> di <strong>${total}</strong>`;
   document.getElementById('recordCount').textContent=total+' record';
   const canEdit=currentRole!=='viewer';
-  if(!pageData.length){tbody.innerHTML=`<tr><td colspan="9"><div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">Nessun risultato</div></div></td></tr>`;renderPagination(pages);return;}
+  if(!pageData.length){tbody.innerHTML=`<tr><td colspan="10"><div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">Nessun risultato</div></div></td></tr>`;renderPagination(pages);return;}
   tbody.innerHTML=pageData.map(r=>`<tr>
     <td style="color:var(--muted);font-size:.75rem">${r.piano}</td>
     <td style="font-weight:600">${r.classe}</td>
@@ -559,6 +684,7 @@ function renderTable() {
     <td><span class="badge badge-ore">${r.ore_a}h</span></td>
     <td>${r.docente_a||'<span style="color:var(--muted)">—</span>'}</td>
     <td>${r.cdc_b?`<span class="badge badge-b">${r.cdc_b}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
+    <td>${r.ore_b?`<span class="badge badge-ore">${r.ore_b}h</span>`:'<span style="color:var(--muted)">—</span>'}</td>
     <td>${r.docente_b||'<span style="color:var(--muted)">—</span>'}</td>
     <td><div class="action-btns">${canEdit?`<button class="btn-icon edit" onclick="openEdit(${r.id})">✏️</button>`:''} ${currentRole==='admin'?`<button class="btn-icon del" onclick="deleteRecord(${r.id})">🗑</button>`:''}</div></td>
   </tr>`).join('');
@@ -825,29 +951,59 @@ function filterByPiano(key){
 function renderDocenti(){
   const q=document.getElementById('searchDocente').value.toLowerCase();
   const cdc=document.getElementById('filterDocenteCdc').value;
+  const dipFilter=document.getElementById('filterDipartimento').value;
   const map={};
   db.forEach(r=>{
     [r.docente_a,r.docente_b].forEach((d,idx)=>{
       if(!d)return;
       const cdcKey=idx===0?r.cdc_a:r.cdc_b;
-      if(!map[d])map[d]={name:d,cdcs:new Set(),classi:new Set(),ore:0,discipline:new Set()};
+      const ore=idx===0?parseInt(r.ore_a)||0:parseInt(r.ore_b)||0;
+      if(!map[d])map[d]={name:d,cdcs:new Set(),ore:0,righe:[]};
       if(cdcKey)map[d].cdcs.add(cdcKey);
-      map[d].classi.add(r.classe);
-      map[d].ore+=parseInt(r.ore_a)||0;
-      map[d].discipline.add(r.disciplina);
+      map[d].ore+=ore;
+      map[d].righe.push({classe:r.classe,disciplina:r.disciplina,ore,ruolo:idx===0?'A':'B'});
     });
   });
+  // calcola dipartimento per ogni docente
+  Object.values(map).forEach(d=>{d.dipartimento=getDipartimento(d.name,[...d.cdcs]);});
+  // popola select dipartimento
+  const dipSel=document.getElementById('filterDipartimento');
+  const dipAttuale=dipSel.value;
+  const dipList=[...new Set(Object.values(map).map(d=>d.dipartimento))].sort();
+  dipSel.innerHTML='<option value="">Tutti</option>'+dipList.map(d=>`<option value="${d}"${d===dipAttuale?' selected':''}>${d}</option>`).join('');
   let docenti=Object.values(map).sort((a,b)=>a.name.localeCompare(b.name,'it'));
   if(q)docenti=docenti.filter(d=>d.name.toLowerCase().includes(q));
   if(cdc)docenti=docenti.filter(d=>d.cdcs.has(cdc));
+  if(dipFilter)docenti=docenti.filter(d=>d.dipartimento===dipFilter);
+  const totalDocenti=Object.keys(map).length;
+  const countEl=document.getElementById('docentiCount');
+  if(countEl)countEl.textContent=`${docenti.length} docenti${docenti.length<totalDocenti?' (filtrati su '+totalDocenti+')':''}`;
   const grid=document.getElementById('docentiGrid');
   if(!docenti.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-state-icon">👤</div><div>Nessun docente trovato</div></div>';return;}
-  grid.innerHTML=docenti.map(d=>`<div class="docente-card" onclick="filterByDocente('${d.name}')">
-    <div class="docente-name">${d.name}</div>
-    <div class="docente-tags">${[...d.cdcs].map(c=>`<span class="badge badge-cdc">${c}</span>`).join('')}</div>
-    <div style="font-size:.75rem;color:var(--muted)">${d.classi.size} classi · ${d.discipline.size} materie</div>
-    <div style="font-size:.72rem;color:var(--muted);margin-top:4px">${[...d.discipline].slice(0,3).join(', ')}${d.discipline.size>3?'…':''}</div>
-  </div>`).join('');
+  grid.innerHTML=docenti.map(d=>{
+    const righeHTML=d.righe.sort((a,b)=>a.classe.localeCompare(b.classe,'it')).map(r=>
+      `<tr><td style="padding:2px 6px 2px 0;font-size:.72rem;color:var(--text)">${r.classe}</td><td style="padding:2px 6px 2px 0;font-size:.72rem;color:var(--muted)">${r.disciplina}</td><td style="padding:2px 0;font-size:.72rem;color:var(--accent);text-align:right">${r.ore}h</td></tr>`
+    ).join('');
+    const nameEsc=d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+    return`<div class="docente-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+      <div class="docente-name" style="cursor:pointer" onclick="filterByDocente('${nameEsc}')">${d.name}</div>
+      <span style="font-size:.68rem;color:var(--muted);background:var(--surface2);border-radius:4px;padding:2px 6px;cursor:pointer" onclick="setDipartimentoDocente('${nameEsc}')" title="Cambia dipartimento">${d.dipartimento}</span>
+    </div>
+    <div class="docente-tags" style="margin-bottom:6px">${[...d.cdcs].map(c=>`<span class="badge badge-cdc">${c}</span>`).join('')} <span style="font-size:.75rem;color:var(--accent);font-weight:600">${d.ore}h tot</span></div>
+    <table style="width:100%;border-collapse:collapse">${righeHTML}</table>
+  </div>`;
+  }).join('');
+}
+function setDipartimentoDocente(nome){
+  const dipList=Object.values(CDC_DIPARTIMENTO).filter((v,i,a)=>a.indexOf(v)===i).sort();
+  const attuale=dipartimentoOverride[nome]||'';
+  const scelta=prompt(`Dipartimento per ${nome}:\n${dipList.map((d,i)=>`${i+1}. ${d}`).join('\n')}\n\nScrivi il nome:`,attuale);
+  if(scelta===null)return;
+  if(scelta.trim())dipartimentoOverride[nome]=scelta.trim();
+  else delete dipartimentoOverride[nome];
+  saveDipartimentoOverride();
+  renderDocenti();
 }
 
 function filterByDocente(name){
@@ -856,6 +1012,285 @@ function filterByDocente(name){
   document.querySelectorAll('.nav-item').forEach((n,i)=>{if(i!==0)n.classList.remove('active');});
   document.getElementById('filterDocente').value=name;
   applyFilters();
+}
+
+// ============================================================
+// CLASSI
+// ============================================================
+let classiDB = (function(){
+  try{
+    const s=localStorage.getItem('organico_classidb');
+    if(s){
+      const parsed=JSON.parse(s);
+      if(Array.isArray(parsed)&&parsed.length>0&&parsed[0].nome) return parsed;
+      localStorage.removeItem('organico_classidb');
+    }
+  }catch(e){localStorage.removeItem('organico_classidb');}
+  // migrazione da COMPOSIZIONI_RAW con rilevamento articolate
+  // una classe è articolata se appare in una composizione E ha sottoclassi (nome+"-xxx")
+  // in composizioni diverse con lo stesso piano_comune
+  const result=[];
+  const skipNomi=new Set();
+
+  COMPOSIZIONI_RAW.forEach(comp=>{
+    comp.classi.forEach(cl=>{
+      // cerca se cl ha varianti "-xxx" in altri piani con stesso piano_comune
+      const varianti=[];
+      COMPOSIZIONI_RAW.forEach(other=>{
+        if(other.key===comp.key) return;
+        if(other.piano_comune!==comp.piano_comune) return;
+        other.classi.forEach(oc=>{
+          if(oc.startsWith(cl+'-')||oc.startsWith(cl+' ')) varianti.push({nome:oc,piano_specifico:other.piano_specifico,comp_key:other.key});
+        });
+      });
+      // anche varianti nello stesso comp (es IPIA 3NP e IPIA 3NP-N nello stesso)
+      const variantiStessoComp=comp.classi.filter(oc=>oc!==cl&&(oc.startsWith(cl+'-')||oc.startsWith(cl+' ')));
+      variantiStessoComp.forEach(oc=>{ if(!varianti.find(v=>v.nome===oc)) varianti.push({nome:oc,piano_specifico:comp.piano_specifico,comp_key:comp.key}); });
+
+      if(varianti.length>=2&&!result.find(x=>x.nome===cl)){
+        // classe articolata
+        const sg1=varianti[0];
+        const sg2=varianti[1];
+        result.push({nome:cl,piano_comune:comp.piano_comune,articolata:true,
+          sottogruppi:[{nome:sg1.nome,piano_specifico:sg1.piano_specifico},{nome:sg2.nome,piano_specifico:sg2.piano_specifico}]});
+        skipNomi.add(sg1.nome);
+        skipNomi.add(sg2.nome);
+        skipNomi.add(cl); // già aggiunto
+      }
+    });
+  });
+
+  COMPOSIZIONI_RAW.forEach(comp=>{
+    comp.classi.forEach(cl=>{
+      if(skipNomi.has(cl)) return;
+      if(result.find(x=>x.nome===cl)) return;
+      result.push({nome:cl,pianoKey:comp.key,articolata:false});
+      skipNomi.add(cl);
+    });
+  });
+  return result;
+})();
+function saveClassiDB(){try{localStorage.setItem('organico_classidb',JSON.stringify(classiDB));}catch(e){}}
+function resetClassiDB(){
+  if(!confirm('Ripristinare la lista classi dai dati originali?\nLe classi aggiunte manualmente andranno perse.\nLE ASSEGNAZIONI NON vengono eliminate.'))return;
+  localStorage.removeItem('organico_classidb');
+  location.reload();
+}
+
+function classeHaAssegnazioni(classe){return db.some(r=>r.classe===classe);}
+
+function toggleArticolata(){
+  const art=document.getElementById('ncArticolata').checked;
+  document.getElementById('ncArticolataFields').style.display=art?'':'none';
+  document.getElementById('ncPianoWrap').style.display=art?'none':'';
+}
+
+function renderClassi(){
+  const el=document.getElementById('classiList');
+  if(!el)return;
+  // popola selects la prima volta
+  const ncPiano=document.getElementById('ncPiano');
+  if(ncPiano&&ncPiano.options.length<=1){
+    const pianoKeys=Object.keys(piani).sort();
+    pianoKeys.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;ncPiano.appendChild(o);});
+  }
+  const ncComune=document.getElementById('ncComune');
+  if(ncComune&&ncComune.options.length<=1){
+    Object.keys(PIANI_COMUNI_RAW).sort().forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;ncComune.appendChild(o);});
+  }
+  ['ncSg1Piano','ncSg2Piano'].forEach(id=>{
+    const s=document.getElementById(id);
+    if(s&&s.options.length<=1){
+      Object.keys(PIANI_SPECIFICI_RAW).sort().forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;s.appendChild(o);});
+    }
+  });
+
+  if(!classiDB.length){el.innerHTML='<div class="empty-state"><div class="empty-state-icon">&#x1F3EB;</div><div>Nessuna classe.</div></div>';return;}
+  const sorted=[...classiDB].sort((a,b)=>a.nome.localeCompare(b.nome,'it'));
+  let html='<table style="width:100%;border-collapse:collapse"><thead><tr>'+
+    '<th style="text-align:left;padding:8px 12px;font-size:.74rem;color:var(--muted);background:var(--surface2);border-bottom:1px solid var(--border)">Classe</th>'+
+    '<th style="text-align:left;padding:8px 12px;font-size:.74rem;color:var(--muted);background:var(--surface2);border-bottom:1px solid var(--border)">Piano</th>'+
+    '<th style="text-align:left;padding:8px 12px;font-size:.74rem;color:var(--muted);background:var(--surface2);border-bottom:1px solid var(--border)">Stato</th>'+
+    '<th style="padding:8px 12px;background:var(--surface2);border-bottom:1px solid var(--border)"></th>'+
+    '</tr></thead><tbody>';
+  sorted.forEach((entry,idx)=>{
+    const realIdx=classiDB.indexOf(entry);
+    if(entry.articolata){
+      // riga principale articolata
+      const sgStati=entry.sottogruppi.map(sg=>classeHaAssegnazioni(sg.nome));
+      const allGen=sgStati.every(Boolean);
+      const someGen=sgStati.some(Boolean);
+      const comuneInfo=entry.piano_comune||'';
+      html+='<tr style="border-bottom:1px solid var(--border);background:var(--surface2)">'+
+        '<td style="padding:8px 12px;font-weight:600">'+entry.nome+' <span style="font-size:.7rem;color:var(--accent);background:rgba(79,142,247,.15);border-radius:4px;padding:1px 5px">ARTICOLATA</span></td>'+
+        '<td style="padding:8px 12px;font-size:.82rem;color:var(--muted)">Comune: '+comuneInfo+'</td>'+
+        '<td style="padding:8px 12px"><span style="font-size:.78rem;color:'+(allGen?'var(--green)':someGen?'var(--yellow)':'var(--muted)')+'">'+
+          (allGen?'&#9679; Generata':someGen?'&#9679; Parziale':'&#9675; Da generare')+'</span></td>'+
+        '<td style="padding:8px 12px;text-align:right"><button class="btn btn-ghost" style="font-size:.72rem;padding:3px 8px;color:var(--red)" onclick="rimuoviClasse('+realIdx+')">&#10005;</button></td>'+
+        '</tr>';
+      entry.sottogruppi.forEach((sg,si)=>{
+        const haDb=classeHaAssegnazioni(sg.nome);
+        html+='<tr style="border-bottom:1px solid var(--border)">'+
+          '<td style="padding:6px 12px 6px 28px;font-size:.82rem;color:var(--muted)">&#x21B3; '+sg.nome+'</td>'+
+          '<td style="padding:6px 12px;font-size:.78rem;color:var(--muted)">'+sg.piano_specifico+'</td>'+
+          '<td style="padding:6px 12px"><span style="font-size:.78rem;color:'+(haDb?'var(--green)':'var(--yellow)')+'">'+
+            (haDb?'&#9679; Generata':'&#9675; Da generare')+'</span></td>'+
+          '<td style="padding:6px 12px;text-align:right;white-space:nowrap">'+
+          (haDb?'<button class="btn btn-ghost" style="font-size:.72rem;padding:3px 8px;color:var(--yellow)" onclick="resetClasse('+realIdx+','+si+')">&#8635; Reset</button>':'')+
+          '</td></tr>';
+      });
+    } else {
+      const haDb=classeHaAssegnazioni(entry.nome);
+      const piano=piani[entry.pianoKey];
+      const nMat=piano?piano.materie.length:0;
+      html+='<tr style="border-bottom:1px solid var(--border)">'+
+        '<td style="padding:8px 12px;font-weight:600">'+entry.nome+'</td>'+
+        '<td style="padding:8px 12px;font-size:.82rem;color:var(--muted)">'+entry.pianoKey+' <span style="font-size:.72rem">('+nMat+' mat.)</span></td>'+
+        '<td style="padding:8px 12px"><span style="font-size:.78rem;color:'+(haDb?'var(--green)':'var(--yellow)')+'">'+
+          (haDb?'&#9679; Generata':'&#9675; Da generare')+'</span></td>'+
+        '<td style="padding:8px 12px;text-align:right;white-space:nowrap">'+
+        (haDb?'<button class="btn btn-ghost" style="font-size:.72rem;padding:3px 8px;color:var(--yellow)" onclick="resetClasse('+realIdx+',null)">&#8635; Reset</button>':'')+
+        '<button class="btn btn-ghost" style="font-size:.72rem;padding:3px 8px;color:var(--red)" onclick="rimuoviClasse('+realIdx+')">&#10005;</button>'+
+        '</td></tr>';
+    }
+  });
+  el.innerHTML=html+'</tbody></table>';
+}
+
+function aggiungiNuovaClasse(){
+  const plesso=document.getElementById('ncPlesso').value;
+  const nomeRaw=document.getElementById('ncNome').value.trim();
+  if(!plesso){toast('Seleziona plesso','error');return;}
+  if(!nomeRaw){toast('Inserisci nome classe','error');return;}
+  const nome=plesso+' '+nomeRaw;
+  const art=document.getElementById('ncArticolata').checked;
+  if(art){
+    const comune=document.getElementById('ncComune').value;
+    const sg1n=document.getElementById('ncSg1Nome').value.trim();
+    const sg1p=document.getElementById('ncSg1Piano').value;
+    const sg2n=document.getElementById('ncSg2Nome').value.trim();
+    const sg2p=document.getElementById('ncSg2Piano').value;
+    if(!comune||!sg1n||!sg1p||!sg2n||!sg2p){toast('Compila tutti i campi articolata','error');return;}
+    classiDB.push({nome,piano_comune:comune,articolata:true,sottogruppi:[{nome:sg1n,piano_specifico:sg1p},{nome:sg2n,piano_specifico:sg2p}]});
+  } else {
+    const pianoKey=document.getElementById('ncPiano').value;
+    if(!pianoKey){toast('Seleziona piano','error');return;}
+    if(classiDB.find(x=>x.nome===nome&&!x.articolata)){toast('Classe gia presente','error');return;}
+    classiDB.push({nome,pianoKey,articolata:false});
+  }
+  saveClassiDB();
+  document.getElementById('ncPlesso').value='';
+  document.getElementById('ncNome').value='';
+  document.getElementById('ncPiano').value='';
+  document.getElementById('ncArticolata').checked=false;
+  toggleArticolata();
+  renderClassi();
+  toast(nome+' aggiunta','success');
+}
+
+function rimuoviClasse(idx){
+  const entry=classiDB[idx];
+  if(!confirm('Rimuovere '+entry.nome+'?\n(Le assegnazioni NON vengono eliminate)'))return;
+  classiDB.splice(idx,1);
+  saveClassiDB();
+  renderClassi();
+}
+
+function resetClasse(idx,sgIdx){
+  const entry=classiDB[idx];
+  if(sgIdx!==null&&sgIdx!==undefined){
+    // reset sottogruppo articolata
+    const sg=entry.sottogruppi[sgIdx];
+    if(!confirm('Reset assegnazioni per '+sg.nome+'?\nI docenti assegnati verranno rimossi.'))return;
+    db=db.filter(r=>r.classe!==sg.nome);
+    generaRigheClasse(entry,sgIdx);
+  } else {
+    if(!confirm('Reset assegnazioni per '+entry.nome+'?\nI docenti assegnati verranno rimossi.'))return;
+    db=db.filter(r=>r.classe!==entry.nome);
+    generaRigheClasse(entry,null);
+  }
+  filtered=[...db];
+  try{localStorage.setItem('organico_db',JSON.stringify(db));}catch(e){}
+  applyFilters();renderClassi();
+  toast('Rigenerata da piano','success');
+}
+
+function generaRigheClasse(entry,sgIdx){
+  let nextId=db.length?Math.max(...db.map(r=>isNaN(parseInt(r.id))?0:parseInt(r.id))+[0])+1:1;
+  // helper: push materie
+  function pushMaterie(materie,classe,pianoLabel){
+    materie.forEach(m=>{
+      const ore=parseInt(m.ore_a)||0;
+      const cdc_a=normCdc(m.cdc_a);
+      const cdc_atipica=m.cdc_atipica||normCdc(m.cdc_a!==m.cdc_atipica?m.cdc_atipica||'':'');
+      const cdc_b=normCdc(m.cdc_b||'');
+      const base={id:nextId++,piano:pianoLabel,classe,codice:m.codice||'',cdc_a,cdc_atipica,cdc_b,ore_b:m.ore_b||'',docente_a:'',docente_b:'',potenziamento:''};
+      if(/italiano\s+e\s+storia/i.test(m.disciplina)){
+        db.push({...base,disciplina:'Italiano',codice:'ITA',ore_a:String(Math.max(1,ore-2))});
+        db.push({...base,id:nextId++,disciplina:'Storia',codice:'STO',ore_a:'2'});
+      } else {
+        db.push({...base,disciplina:m.disciplina,ore_a:String(ore)});
+      }
+    });
+  }
+  if(entry.articolata){
+    if(sgIdx===null||sgIdx===undefined){
+      // genera solo piano comune per classe principale
+      const comuni=PIANI_COMUNI_RAW[entry.piano_comune];
+      if(comuni) pushMaterie(comuni.materie,entry.nome,entry.piano_comune);
+      // genera specifici per ogni sottogruppo
+      entry.sottogruppi.forEach(sg=>{
+        const spec=PIANI_SPECIFICI_RAW[sg.piano_specifico];
+        if(spec) pushMaterie(spec.materie,sg.nome,sg.piano_specifico);
+      });
+    } else {
+      // rigenera solo un sottogruppo
+      const sg=entry.sottogruppi[sgIdx];
+      const spec=PIANI_SPECIFICI_RAW[sg.piano_specifico];
+      if(spec) pushMaterie(spec.materie,sg.nome,sg.piano_specifico);
+    }
+  } else {
+    const piano=piani[entry.pianoKey];
+    if(piano) pushMaterie(piano.materie,entry.nome,entry.pianoKey);
+  }
+}
+
+function generaAssegnazioni(){
+  let generated=0;const skip=[];
+  classiDB.forEach((entry,idx)=>{
+    if(entry.articolata){
+      const comuneOk=classeHaAssegnazioni(entry.nome);
+      const sgOk=entry.sottogruppi.every(sg=>classeHaAssegnazioni(sg.nome));
+      if(comuneOk&&sgOk){skip.push(entry.nome);return;}
+      if(!comuneOk){
+        const comuni=PIANI_COMUNI_RAW[entry.piano_comune];
+        if(comuni){
+          let nid=db.length?Math.max(...db.map(r=>isNaN(parseInt(r.id))?0:parseInt(r.id))+[0])+1:1;
+          // inline push for comune
+          comuni.materie.forEach(m=>{
+            const ore=parseInt(m.ore_a)||0;
+            const base={id:nid++,piano:entry.piano_comune,classe:entry.nome,codice:m.codice||'',cdc_a:normCdc(m.cdc_a),cdc_atipica:m.cdc_atipica||'',cdc_b:normCdc(m.cdc_b||''),ore_b:m.ore_b||'',docente_a:'',docente_b:'',potenziamento:''};
+            if(/italiano\s+e\s+storia/i.test(m.disciplina)){db.push({...base,disciplina:'Italiano',codice:'ITA',ore_a:String(Math.max(1,ore-2))});db.push({...base,id:nid++,disciplina:'Storia',codice:'STO',ore_a:'2'});}
+            else db.push({...base,disciplina:m.disciplina,ore_a:String(ore)});
+          });
+        }
+        generated++;
+      }
+      entry.sottogruppi.forEach((sg,si)=>{
+        if(!classeHaAssegnazioni(sg.nome)){generaRigheClasse(entry,si);generated++;}
+      });
+    } else {
+      if(classeHaAssegnazioni(entry.nome)){skip.push(entry.nome);return;}
+      generaRigheClasse(entry,null);
+      generated++;
+    }
+  });
+  filtered=[...db];
+  try{localStorage.setItem('organico_db',JSON.stringify(db));}catch(e){}
+  populateFilters();applyFilters();renderClassi();
+  const msg='Generate '+generated+' classi.'+(skip.length?' Saltate: '+skip.join(', '):'');
+  toast(msg,'success');
+  if(skip.length) alert(msg);
 }
 
 // ============================================================
@@ -918,6 +1353,66 @@ function exportDocentiCSV(){
   const rows=Object.values(map).sort((a,b)=>a.d.localeCompare(b.d,'it'));
   const csv=['Docente,CDC,N.Classi,Ore Totali',...rows.map(r=>`"${r.d}","${r.cdc}",${r.cl.size},${r.ore}`)].join('\n');
   dl(csv,`docenti_${new Date().toISOString().slice(0,10)}.csv`);
+}
+function parseCSVLine(line){
+  const result=[];let cur='';let inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}
+    else if(c===','&&!inQ){result.push(cur.trim());cur='';}
+    else cur+=c;
+  }
+  result.push(cur.trim());
+  return result;
+}
+function importCSV(input){
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const text=e.target.result.replace(/^\uFEFF/,'');
+      const lines=text.split(/\r?\n/);
+      const imported=[];let id=1;
+      const isGSheets=lines[0]&&lines[0].toLowerCase().startsWith('piano di studi');
+      for(let i=0;i<lines.length;i++){
+        const line=lines[i];
+        if(!line.trim())continue;
+        const c=parseCSVLine(line);
+        if(isGSheets){
+          // salta header ripetuti e righe commento (col[1] vuota o col[0]=='Piano di studi')
+          if(!c[1]||c[0].toLowerCase()==='piano di studi')continue;
+          imported.push({id:id++,piano:c[0]||'',classe:c[1]||'',disciplina:c[2]||'',codice:c[3]||'',
+            cdc_a:c[4]||'',ore_a:c[5]||'',cdc_b:c[6]||'',docente_a:c[10]||'',docente_b:c[11]||'',potenziamento:c[12]||''});
+        }else{
+          // formato export app: Piano,Classe,Disciplina,Codice,CDC A,Ore,CDC B,Docente A,Docente B,Potenziamento
+          if(i===0)continue;// salta header
+          if(!c[1])continue;
+          imported.push({id:id++,piano:c[0]||'',classe:c[1]||'',disciplina:c[2]||'',codice:c[3]||'',
+            cdc_a:c[4]||'',ore_a:c[5]||'',cdc_b:c[6]||'',docente_a:c[7]||'',docente_b:c[8]||'',potenziamento:c[9]||''});
+        }
+      }
+      if(!imported.length){toast('Nessun record valido trovato','error');return;}
+      const expanded=[];
+      imported.forEach(r=>{
+        r.cdc_a=normCdc(r.cdc_a);r.cdc_b=normCdc(r.cdc_b);
+        if(/italiano\s+e\s+storia/i.test(r.disciplina)){
+          const oreIta=Math.max(1,(parseInt(r.ore_a)||0)-2);
+          const oreSto=2;
+          expanded.push({...r,id:r.id,disciplina:'Italiano',codice:'ITA',ore_a:String(oreIta)});
+          expanded.push({...r,id:r.id+'_sto',disciplina:'Storia',codice:'STO',ore_a:String(oreSto)});
+        } else {
+          expanded.push(r);
+        }
+      });
+      db=expanded;filtered=[...db];
+      try{localStorage.setItem('organico_db',JSON.stringify(db));}catch(e){}
+      populateFilters();applyFilters();renderDashboard();
+      toast(`Importati ${db.length} record ✓`,'success');
+      input.value='';
+    }catch(err){toast('Errore parsing CSV: '+err.message,'error');}
+  };
+  reader.readAsText(file,'UTF-8');
 }
 function exportPianiCSV(){
   const rows=['Piano,Classi,Disciplina,Codice,CDC A,CDC atipica,Ore,ITP,Ore ITP'];
