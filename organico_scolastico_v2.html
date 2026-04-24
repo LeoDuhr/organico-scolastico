@@ -360,6 +360,7 @@ tbody td{padding:9px 14px;vertical-align:middle}
             <div class="ore-card" style="padding:18px"><div style="font-weight:600;margin-bottom:6px">🔍 CSV selezione corrente</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Solo i record filtrati nella vista Assegnazioni.</div><button class="btn btn-ghost" onclick="exportCSV('filtered')">Scarica filtrato</button></div>
             <div class="ore-card" style="padding:18px"><div style="font-weight:600;margin-bottom:6px">📋 CSV piani di studio</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Esporta tutti i piani di studio con le materie.</div><button class="btn btn-ghost" onclick="exportPianiCSV()">Scarica piani</button></div>
             <div class="ore-card" style="padding:18px"><div style="font-weight:600;margin-bottom:6px">👥 Riepilogo docenti</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Ore totali per docente.</div><button class="btn btn-ghost" onclick="exportDocentiCSV()">Scarica docenti</button></div>
+            <div class="ore-card" style="padding:18px;border:1px solid var(--accent)"><div style="font-weight:600;margin-bottom:6px">👤 Importa docenti da CDC</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">CSV con header: <code>Docente,CDC</code> — assegna docente alle righe vuote con CDC corrispondente.</div><input type="file" id="importDocentiFile" accept=".csv" style="display:none" onchange="importDocentiCSV(this)"><button class="btn btn-ghost" onclick="document.getElementById('importDocentiFile').click()">Carica docenti CSV</button></div>
             <div class="ore-card" style="padding:18px;border:1px solid var(--accent)"><div style="font-weight:600;margin-bottom:6px">📥 Importa CSV assegnazioni</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Carica un CSV con header: Piano, Classe, Disciplina, Codice, CDC A, Ore, CDC B, Docente A, Docente B, Potenziamento</div><input type="file" id="importFile" accept=".csv" style="display:none" onchange="importCSV(this)"><button class="btn btn-primary" onclick="document.getElementById('importFile').click()">Carica CSV</button></div>
             <div class="ore-card" style="padding:18px;border:1px solid var(--green)"><div style="font-weight:600;margin-bottom:6px">💾 Backup completo JSON</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Esporta tutto lo stato (assegnazioni, dipartimenti, classi) in un file JSON.</div><button class="btn btn-primary" onclick="exportJSON()">Scarica JSON</button></div>
             <div class="ore-card" style="padding:18px;border:1px solid var(--yellow)"><div style="font-weight:600;margin-bottom:6px">📂 Ripristina da JSON</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Carica un backup JSON per ripristinare tutto lo stato.</div><input type="file" id="importJSONFile" accept=".json" style="display:none" onchange="importJSON(this)"><button class="btn btn-ghost" onclick="document.getElementById('importJSONFile').click()">Carica JSON</button></div>
@@ -1387,6 +1388,31 @@ function exportDocentiCSV(){
   const rows=Object.values(map).sort((a,b)=>a.d.localeCompare(b.d,'it'));
   const csv=['Docente,CDC,N.Classi,Ore Totali',...rows.map(r=>`"${r.d}","${r.cdc}",${r.cl.size},${r.ore}`)].join('\n');
   dl(csv,`docenti_${new Date().toISOString().slice(0,10)}.csv`);
+}
+function importDocentiCSV(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const text=e.target.result.replace(/^\uFEFF/,'');
+      const lines=text.split(/\r?\n/).filter(l=>l.trim());
+      let startIdx=0;
+      if(lines[0]&&(lines[0].toLowerCase().includes('docente')||lines[0].toLowerCase().includes('cdc')))startIdx=1;
+      let count=0;
+      for(let i=startIdx;i<lines.length;i++){
+        const parts=parseCSVLine(lines[i]);
+        if(parts.length<2)continue;
+        const nome=parts[0].trim();
+        const cdc=normCdc(parts[1].trim());
+        if(!nome||!cdc)continue;
+        db.forEach(r=>{if(normCdc(r.cdc_a)===cdc&&!r.docente_a){r.docente_a=nome;count++;}});
+      }
+      saveDB();renderTable();
+      alert(`Assegnati ${count} record a docenti da CDC.`);
+    }catch(err){alert('Errore import docenti: '+err.message);}
+    input.value='';
+  };
+  reader.readAsText(file,'UTF-8');
 }
 function parseCSVLine(line){
   const result=[];let cur='';let inQ=false;
