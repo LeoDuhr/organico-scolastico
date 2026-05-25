@@ -668,6 +668,30 @@ function setCattedraDocente(nome){
   if(document.getElementById('page-dipartimenti').classList.contains('active'))renderDipRight(DIPARTIMENTI_LIST[currentDip]);
 }
 function normCdc(cdc){return (cdc||'').split('/')[0].trim();}
+
+function buildTeacherMaps(){
+  const teachByCdc={},orePerDoc={};
+  db.forEach(r=>{
+    [[r.cdc_a,r.docente_a,r.ore_a],[r.cdc_b,r.docente_b,r.ore_b]].forEach(([c,d,o])=>{
+      if(!d)return;
+      const k=normCdc(c||'');
+      if(!teachByCdc[k])teachByCdc[k]=new Set();
+      teachByCdc[k].add(d);
+      orePerDoc[d]=(orePerDoc[d]||0)+(parseInt(o)||0);
+    });
+  });
+  return{teachByCdc,orePerDoc};
+}
+function mkDocSel(id,field,cdc,cur,teachByCdc,orePerDoc,saveFn){
+  const k=normCdc(cdc||'');
+  const opts=[...(teachByCdc[k]||[])].sort();
+  const m=!cur;
+  return`<select style="background:var(--bg);border:1px solid ${m?'rgba(248,113,113,.4)':'var(--border)'};color:${m?'var(--red)':'var(--text)'};border-radius:5px;padding:3px 5px;font-size:.76rem;font-family:var(--sans);width:100%;min-width:130px" onchange="${saveFn}(${id},'${field}',this.value)">
+    <option value=""${!cur?' selected':''}>—</option>
+    ${opts.map(t=>{const o=orePerDoc[t]||0;const p=getCattedra(t);const f=o>=p?' ✓':o>=(p-2)?' ⚡':'';return`<option value="${t}"${t===cur?' selected':''}>${t} (${o}/${p}h)${f}</option>`;}).join('')}
+  </select>`;
+}
+
 function getDipartimento(docente, cdcs){
   if(dipartimentoOverride[docente])return dipartimentoOverride[docente];
   for(const cdc of cdcs){
@@ -776,19 +800,31 @@ function renderTable() {
   document.getElementById('recordCount').textContent=total+' record';
   const canEdit=currentRole!=='viewer';
   if(!pageData.length){tbody.innerHTML=`<tr><td colspan="10"><div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">Nessun risultato</div></div></td></tr>`;renderPagination(pages);return;}
+  const {teachByCdc,orePerDoc}=buildTeacherMaps();
   tbody.innerHTML=pageData.map(r=>`<tr>
     <td style="color:var(--muted);font-size:.75rem">${r.piano}</td>
     <td style="font-weight:600">${r.classe}</td>
     <td>${r.disciplina}</td>
     <td><span class="badge badge-cdc">${r.cdc_a}</span></td>
     <td><span class="badge badge-ore">${r.ore_a}h</span></td>
-    <td>${r.docente_a||'<span style="color:var(--muted)">—</span>'}</td>
+    <td style="min-width:150px">${canEdit?mkDocSel(r.id,'docente_a',r.cdc_a,r.docente_a,teachByCdc,orePerDoc,'setAssegnazDocente'):(r.docente_a||'<span style="color:var(--muted)">—</span>')}</td>
     <td>${r.cdc_b?`<span class="badge badge-b">${r.cdc_b}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
     <td>${r.ore_b?`<span class="badge badge-ore">${r.ore_b}h</span>`:'<span style="color:var(--muted)">—</span>'}</td>
-    <td>${r.docente_b||'<span style="color:var(--muted)">—</span>'}</td>
+    <td style="min-width:150px">${r.cdc_b&&canEdit?mkDocSel(r.id,'docente_b',r.cdc_b,r.docente_b,teachByCdc,orePerDoc,'setAssegnazDocente'):(r.docente_b||'<span style="color:var(--muted)">—</span>')}</td>
     <td><div class="action-btns">${canEdit?`<button class="btn-icon edit" onclick="openEdit(${r.id})">✏️</button>`:''} ${currentRole==='admin'?`<button class="btn-icon del" onclick="deleteRecord(${r.id})">🗑</button>`:''}</div></td>
   </tr>`).join('');
   renderPagination(pages);
+}
+
+function setAssegnazDocente(id,field,val){
+  const dbIdx=db.findIndex(x=>x.id===id);
+  if(dbIdx===-1)return;
+  db[dbIdx][field]=val;
+  const fIdx=filtered.findIndex(x=>x.id===id);
+  if(fIdx!==-1)filtered[fIdx][field]=val;
+  try{localStorage.setItem('organico_db',JSON.stringify(db));}catch(e){}
+  renderTable();
+  toast('Docente aggiornato ✓','success');
 }
 
 function renderPagination(pages) {
@@ -2166,25 +2202,8 @@ function closeConsigliModal() {
 
 function renderConsigliModalBody(e) {
   const canEdit = currentRole !== 'viewer';
-  // build teacher maps fresh from db
-  const teachByCdc = {}, orePerDoc = {};
-  db.forEach(r=>{
-    [[r.cdc_a,r.docente_a,r.ore_a],[r.cdc_b,r.docente_b,r.ore_b]].forEach(([c,d,o])=>{
-      if(!d)return;
-      const k=normCdc(c||'');
-      if(!teachByCdc[k])teachByCdc[k]=new Set();
-      teachByCdc[k].add(d);
-      orePerDoc[d]=(orePerDoc[d]||0)+(parseInt(o)||0);
-    });
-  });
-  const mkSel=(id,field,cdc,cur)=>{
-    const k=normCdc(cdc||'');
-    const opts=[...(teachByCdc[k]||[])].sort();
-    return`<select style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:4px 6px;font-size:.76rem;font-family:var(--sans);width:100%;min-width:130px" onchange="setConsigliDocente(${id},'${field}',this.value)">
-      <option value=""${!cur?' selected':''}>—</option>
-      ${opts.map(t=>{const o=orePerDoc[t]||0;const p=getCattedra(t);const f=o>=p?' ✓':o>=(p-2)?' ⚡':'';return`<option value="${t}"${t===cur?' selected':''}>${t} (${o}/${p}h)${f}</option>`;}).join('')}
-    </select>`;
-  };
+  const {teachByCdc,orePerDoc}=buildTeacherMaps();
+  const mkSel=(id,field,cdc,cur)=>mkDocSel(id,field,cdc,cur,teachByCdc,orePerDoc,'setConsigliDocente');
   const righe=db.filter(r=>e.classiNomi.includes(r.classe)).sort((a,b)=>(a.disciplina||'').localeCompare(b.disciplina||'','it'));
   const oreTotal=righe.reduce((s,r)=>s+(parseInt(r.ore_a)||0),0);
   const oreAss=righe.filter(r=>r.docente_a).reduce((s,r)=>s+(parseInt(r.ore_a)||0),0);
