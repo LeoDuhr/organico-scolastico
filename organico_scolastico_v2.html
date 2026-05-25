@@ -301,7 +301,7 @@ tbody td{padding:9px 14px;vertical-align:middle}
           <div class="filter-group"><span class="filter-label">🔍</span><input type="text" style="width:220px" id="searchDocente" placeholder="Cerca docente…" oninput="renderDocenti()"></div>
           <div class="filter-group"><span class="filter-label">Dipartimento</span><select id="filterDipartimento" onchange="renderDocenti()"><option value="">Tutti</option></select></div>
           <div class="filter-group"><span class="filter-label">CDC</span><select id="filterDocenteCdc" onchange="renderDocenti()"><option value="">Tutti</option></select></div>
-          <div class="filter-group" style="gap:4px"><span class="filter-label">Cattedra</span><div id="filtroStatoTabs" style="display:flex;gap:4px"><div class="dip-tab active" onclick="setDocenteStato('')">Tutti</div><div class="dip-tab" onclick="setDocenteStato('incompleta')">⚠ Incompleta</div><div class="dip-tab" onclick="setDocenteStato('completa')">✓ Completa</div><div class="dip-tab" onclick="setDocenteStato('eccede')" style="color:var(--orange)">⚠ Eccede</div></div></div>
+          <div class="filter-group" style="gap:4px"><span class="filter-label">Cattedra</span><div id="filtroStatoTabs" style="display:flex;gap:4px"><div class="dip-tab active" id="tabTutti" onclick="setDocenteStato('')">Tutti</div><div class="dip-tab" id="tabIncompleta" onclick="setDocenteStato('incompleta')">⚠ Incompleta</div><div class="dip-tab" id="tabCompleta" onclick="setDocenteStato('completa')">✓ Completa</div><div class="dip-tab" id="tabEccede" onclick="setDocenteStato('eccede')" style="color:var(--orange)">⚠ Eccede</div></div></div>
           <div class="filter-group"><span id="docentiCount" style="font-size:.82rem;color:var(--muted)"></span></div>
         </div>
         <div class="docenti-grid" id="docentiGrid"></div>
@@ -1113,6 +1113,15 @@ function renderDocenti(){
   });
   // calcola dipartimento per ogni docente
   Object.values(map).forEach(d=>{d.dipartimento=getDipartimento(d.name,[...d.cdcs]);});
+  // aggiorna conteggi tab stato
+  const allD=Object.values(map);
+  const nInc=allD.filter(d=>d.ore<getCattedra(d.name)).length;
+  const nOk=allD.filter(d=>d.ore===getCattedra(d.name)).length;
+  const nEcc=allD.filter(d=>d.ore>getCattedra(d.name)).length;
+  const tabT=document.getElementById('tabTutti'); if(tabT)tabT.textContent=`Tutti (${allD.length})`;
+  const tabI=document.getElementById('tabIncompleta'); if(tabI)tabI.textContent=`⚠ Incompleta (${nInc})`;
+  const tabC=document.getElementById('tabCompleta'); if(tabC)tabC.textContent=`✓ Completa (${nOk})`;
+  const tabE=document.getElementById('tabEccede'); if(tabE)tabE.textContent=`⚠ Eccede (${nEcc})`;
   // popola select dipartimento
   const dipSel=document.getElementById('filterDipartimento');
   const dipAttuale=dipSel.value;
