@@ -2124,17 +2124,21 @@ function renderConsigli() {
   });
   const specList = [...specSet].sort();
 
+  // plesso e anno derivati dinamicamente dalle entry reali
+  const plessoList=[...new Set(allEntries.map(e=>getPlesso(e.filterNome)).filter(Boolean))].sort();
+  const annoList=[...new Set(allEntries.map(e=>getAnno(e.filterNome)).filter(Boolean))].sort();
+
   const filtersEl = document.getElementById('consigliFilters');
   filtersEl.innerHTML =
     '<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px">'+
-    '<div><div style="font-size:.7rem;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px">Plesso</div>'+
+    (plessoList.length?'<div><div style="font-size:.7rem;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px">Plesso</div>'+
     '<div style="display:flex;gap:5px;flex-wrap:wrap">'+
-    ['IPIA','ITI','ITA','ITG'].map(p=>`<div class="consigli-pill${consigliPlessoFilter===p?' active':''}" onclick="setConsigliPlesso('${p}')">${p}</div>`).join('')+
-    '</div></div>'+
-    '<div><div style="font-size:.7rem;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px">Anno</div>'+
+    plessoList.map(p=>`<div class="consigli-pill${consigliPlessoFilter===p?' active':''}" onclick="setConsigliPlesso('${p}')">${p}</div>`).join('')+
+    '</div></div>':'')+
+    (annoList.length?'<div><div style="font-size:.7rem;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px">Anno</div>'+
     '<div style="display:flex;gap:5px;flex-wrap:wrap">'+
-    ['1','2','3','4','5'].map(a=>`<div class="consigli-pill${consigliAnnoFilter===a?' active':''}" onclick="setConsigliAnno('${a}')">${a}°</div>`).join('')+
-    '</div></div>'+
+    annoList.map(a=>`<div class="consigli-pill${consigliAnnoFilter===a?' active':''}" onclick="setConsigliAnno('${a}')">${a}°</div>`).join('')+
+    '</div></div>':'')+
     (specList.length?'<div><div style="font-size:.7rem;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px">Specializzazione</div>'+
     '<div style="display:flex;gap:5px;flex-wrap:wrap">'+
     specList.map(s=>`<div class="consigli-pill${consigliSpecFilter===s?' active':''}" onclick="setConsigliSpec('${s.replace(/'/g,"\\'")}')">${s}</div>`).join('')+
