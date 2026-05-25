@@ -1983,7 +1983,7 @@ function getPlesso(nome) {
   return m ? m[1] : '';
 }
 function getAnno(nome) {
-  const m = nome.match(/\s([1-5])/);
+  const m = nome.match(/\s([1-5])(?!\d)/);
   return m ? m[1] : '';
 }
 function getSpecializzazione(pianoKey) {
@@ -2058,21 +2058,25 @@ function renderConsigli() {
   gridEl.innerHTML = entries.map(e => {
     const spec = getEntrySpec(e);
     const anno = getAnno(e.nome);
+    const plesso = getPlesso(e.nome);
     const classiNomi = e.articolata ? [e.nome,...(e.sottogruppi||[]).map(sg=>sg.nome)] : [e.nome];
     const righe = db.filter(r=>classiNomi.includes(r.classe))
       .sort((a,b)=>(a.disciplina||'').localeCompare(b.disciplina||'','it'));
+
+    const oreTotal = righe.reduce((s,r)=>s+(parseInt(r.ore_a)||0),0);
+    const oreAssegnate = righe.filter(r=>r.docente_a).reduce((s,r)=>s+(parseInt(r.ore_a)||0),0);
+    const oreMancanti = oreTotal - oreAssegnate;
+    const nonGenerata = righe.length === 0;
     const nDocenti = new Set(righe.flatMap(r=>[r.docente_a,r.docente_b]).filter(Boolean)).size;
 
     const righeHTML = righe.map(r => {
-      // prefix per articolate: mostra la sottoclasse se diversa dal nome principale
       const pfx = e.articolata && r.classe !== e.nome
-        ? `<span style="font-size:.65rem;color:var(--muted);margin-right:3px">[${r.classe.replace(e.nome,'').trim()}]</span>`
-        : '';
+        ? `<span style="font-size:.63rem;color:var(--muted);margin-right:3px">[${r.classe.replace(e.nome,'').trim()}]</span>` : '';
       const mancante = !r.docente_a;
       let html = `<tr style="border-bottom:1px solid rgba(42,48,69,.5)">
-        <td style="padding:3px 8px 3px 0;font-size:.78rem;color:var(--text)">${pfx}${r.disciplina}</td>
-        <td style="padding:3px 8px 3px 0;font-size:.78rem;color:${mancante?'var(--red)':'var(--muted)'}">${mancante?'<em style="opacity:.6">non assegnato</em>':r.docente_a}</td>
-        <td style="padding:3px 0;font-size:.76rem;color:var(--accent);white-space:nowrap;text-align:right">${r.ore_a||''}h</td>
+        <td style="padding:3px 8px 3px 0;font-size:.78rem;color:${mancante?'var(--red)':'var(--text)'}">${pfx}${r.disciplina}</td>
+        <td style="padding:3px 8px 3px 0;font-size:.78rem;color:${mancante?'var(--red)':'var(--muted)'}">${mancante?'<em style="opacity:.5">—</em>':r.docente_a}</td>
+        <td style="padding:3px 0;font-size:.76rem;color:${mancante?'var(--red)':'var(--accent)'};white-space:nowrap;text-align:right">${r.ore_a||''}h</td>
       </tr>`;
       if(r.docente_b && r.ore_b){
         html += `<tr style="border-bottom:1px solid rgba(42,48,69,.5)">
@@ -2084,16 +2088,27 @@ function renderConsigli() {
       return html;
     }).join('');
 
-    return `<div class="docente-card" style="cursor:default;display:flex;flex-direction:column">
+    return `<div class="docente-card${oreMancanti>0?' incomplete':''}" style="cursor:default;display:flex;flex-direction:column">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-        <div class="docente-name" style="font-size:.95rem">${e.nome}${e.articolata?' <span style="font-size:.62rem;color:var(--accent);background:rgba(79,142,247,.15);border-radius:3px;padding:1px 4px">ART</span>':''}</div>
-        <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">
-          ${anno?`<span class="badge badge-green">${anno}°</span>`:''}
-          ${spec?`<span class="badge badge-cdc">${spec}</span>`:''}
+        <div>
+          <div class="docente-name" style="font-size:.95rem">${e.nome}${e.articolata?' <span style="font-size:.62rem;color:var(--accent);background:rgba(79,142,247,.15);border-radius:3px;padding:1px 4px">ART</span>':''}</div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px">
+            ${plesso?`<span class="badge" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border)">${plesso}</span>`:''}
+            ${anno?`<span class="badge badge-green">${anno}°</span>`:''}
+            ${spec?`<span class="badge badge-cdc">${spec}</span>`:''}
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;margin-left:8px">
+          ${nonGenerata
+            ? `<span style="font-size:.74rem;color:var(--muted);font-style:italic">da generare</span>`
+            : `<div style="font-size:.84rem;font-weight:700;color:${oreMancanti>0?'var(--red)':'var(--green)'}">
+                ${oreMancanti>0?'⚠ ':'✓ '}${oreAssegnate}/${oreTotal}h
+               </div>
+               <div style="font-size:.7rem;color:var(--muted)">${nDocenti} doc. &bull; ${oreMancanti>0?oreMancanti+'h mancanti':'completa'}</div>`
+          }
         </div>
       </div>
-      <div style="font-size:.72rem;color:var(--muted);margin-bottom:8px">${nDocenti} docenti &bull; ${righe.length} righe</div>
-      <table style="width:100%;border-collapse:collapse">${righeHTML}</table>
+      ${righe.length ? `<table style="width:100%;border-collapse:collapse">${righeHTML}</table>` : '<div style="font-size:.78rem;color:var(--muted);font-style:italic;padding:8px 0">Nessuna riga generata — vai su Classi per generare</div>'}
     </div>`;
   }).join('');
 }
