@@ -163,6 +163,26 @@ tbody td{padding:9px 14px;vertical-align:middle}
 .aggiungi-materia-row input:focus{font-style:normal;color:var(--text)}
 .new-piano-modal .form-grid{grid-template-columns:1fr}
 .ore-badge-total{display:inline-flex;align-items:center;gap:5px;background:rgba(79,142,247,.12);color:var(--accent);border:1px solid rgba(79,142,247,.25);border-radius:20px;padding:4px 12px;font-size:.8rem;font-weight:600}
+/* DIPARTIMENTI */
+.dip-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.dip-tab{padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.82rem;font-weight:500;color:var(--muted);border:1px solid var(--border);background:var(--surface);white-space:nowrap;transition:all .15s;user-select:none}
+.dip-tab:hover{color:var(--text);border-color:var(--muted)}
+.dip-tab.active{color:var(--accent);border-color:var(--accent);background:rgba(79,142,247,.1)}
+.dip-split{display:grid;grid-template-columns:1fr 1fr;gap:16px;height:calc(100vh - 210px);overflow:hidden}
+.dip-left{overflow-y:auto}.dip-right{overflow-y:auto}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.cattedra-alert{animation:blink 1s step-start infinite;color:var(--red);font-weight:700;font-size:.85rem}
+.docente-card.incomplete{border-color:rgba(248,113,113,.5);background:rgba(248,113,113,.05)}
+.dip-cdc-table thead th{background:var(--surface2);padding:9px 14px;text-align:left;font-weight:600;color:var(--muted);font-size:.73rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border)}
+.dip-cdc-table tbody tr{border-bottom:1px solid var(--border)}.dip-cdc-table tbody tr:last-child{border-bottom:none}
+.dip-cdc-table tbody tr:hover{background:rgba(255,255,255,.02)}.dip-cdc-table td{padding:9px 14px;vertical-align:middle}
+.dip-inner-tabs{display:flex;gap:4px;margin-bottom:10px}
+.dip-inner-tab{padding:4px 12px;border-radius:6px;cursor:pointer;font-size:.78rem;font-weight:500;color:var(--muted);border:1px solid var(--border);background:var(--surface);transition:all .15s;user-select:none}
+.dip-inner-tab:hover{color:var(--text)}.dip-inner-tab.active{color:var(--accent);border-color:var(--accent);background:rgba(79,142,247,.1)}
+.pot-form{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pot-row-badge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:.68rem;font-weight:600}
+.pot-badge{background:rgba(251,191,36,.12);color:var(--yellow);border:1px solid rgba(251,191,36,.3)}
+.ecc-badge{background:rgba(124,95,247,.12);color:#a78bfa;border:1px solid rgba(124,95,247,.3)}
 </style>
 </head>
 <body>
@@ -187,6 +207,12 @@ tbody td{padding:9px 14px;vertical-align:middle}
       </div>
       <div class="nav-item" onclick="showPage('dashboard',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="13" width="4" height="8" rx="1"/><rect x="10" y="9" width="4" height="12" rx="1"/><rect x="17" y="5" width="4" height="16" rx="1"/></svg>Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('dipartimenti',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Dipartimenti
+      </div>
+      <div class="nav-item" onclick="showPage('potenziamento',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Potenziamento
       </div>
       <div class="nav-item" onclick="showPage('export',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Esporta
@@ -220,6 +246,7 @@ tbody td{padding:9px 14px;vertical-align:middle}
           <div class="filter-group"><span class="filter-label">Piano</span><select id="filterPiano" onchange="applyFilters()"><option value="">Tutti</option></select></div>
           <div class="filter-group"><span class="filter-label">CDC</span><select id="filterCdc" onchange="applyFilters()"><option value="">Tutti</option></select></div>
           <div class="filter-group"><span class="filter-label">Docente</span><select id="filterDocente" onchange="applyFilters()"><option value="">Tutti</option></select></div>
+          <div class="filter-group"><span class="filter-label">Tipo ora</span><select id="filterTipoOra" onchange="applyFilters()" style="min-width:130px"><option value="">Tutte</option><option value="Potenziamento">🟡 Potenziamento</option><option value="Ora Eccedente">🟣 Ora Eccedente</option><option value="Supplenze">Supplenze</option><option value="Staff">Staff</option><option value="Alternativa IRC">Alternativa IRC</option></select></div>
           <button class="btn btn-ghost" onclick="resetFilters()">✕ Reset</button>
         </div>
         <div class="results-meta" id="resultsMeta"></div>
@@ -269,6 +296,23 @@ tbody td{padding:9px 14px;vertical-align:middle}
           <div class="filter-group"><span id="docentiCount" style="font-size:.82rem;color:var(--muted)"></span></div>
         </div>
         <div class="docenti-grid" id="docentiGrid"></div>
+      </div>
+
+      <!-- DIPARTIMENTI -->
+      <div class="page" id="page-dipartimenti">
+        <div class="dip-tabs" id="dipTabs"></div>
+        <div class="dip-split">
+          <div class="dip-left" id="dipLeft"></div>
+          <div class="dip-right" id="dipRight"></div>
+        </div>
+      </div>
+
+      <!-- POTENZIAMENTO -->
+      <div class="page" id="page-potenziamento">
+        <div style="display:grid;grid-template-columns:340px 1fr;gap:16px;height:calc(100vh - 130px);overflow:hidden">
+          <div style="overflow-y:auto" id="potFormPanel"></div>
+          <div style="overflow-y:auto" id="potTablePanel"></div>
+        </div>
       </div>
 
       <!-- DASHBOARD -->
@@ -577,7 +621,7 @@ const CDC_DIPARTIMENTO = {
   'A46':'Diritto',
   'A37':'Geometri e TTRG','B14':'Geometri e TTRG',
   'A40':'Elettrotecnica','B15':'Elettrotecnica','---':'Elettrotecnica',
-  'RC':'Religione',
+  'RC':'Religione','IRC':'Religione',
   'A41':'Informatica','B16':'Informatica',
   'A42':'Meccanica','B17':'Meccanica',
   'A44':'Moda','B18':'Moda'
@@ -642,7 +686,7 @@ function showPage(name, el) {
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   if(el) el.classList.add('active');
-  const titles={assegnazioni:'Assegnazioni',piani:'Piani di Studio',docenti:'Docenti',classi:'Classi',dashboard:'Dashboard',export:'Esporta'};
+  const titles={assegnazioni:'Assegnazioni',piani:'Piani di Studio',docenti:'Docenti',classi:'Classi',dashboard:'Dashboard',export:'Esporta',dipartimenti:'Dipartimenti',potenziamento:'Potenziamento / Eccedente'};
   document.getElementById('pageTitle').textContent=titles[name]||name;
   document.getElementById('addBtn').style.display=(name==='assegnazioni'&&currentRole!=='viewer')?'flex':'none';
   document.getElementById('addPianoBtn').style.display=(name==='piani'&&currentRole!=='viewer')?'flex':'none';
@@ -650,6 +694,8 @@ function showPage(name, el) {
   if(name==='dashboard') renderDashboard();
   if(name==='piani') renderPianiList();
   if(name==='classi') renderClassi();
+  if(name==='dipartimenti') renderDipartimenti();
+  if(name==='potenziamento') renderPotenziamentoPage();
 }
 
 // ============================================================
@@ -660,13 +706,22 @@ function applyFilters() {
   const piano=document.getElementById('filterPiano').value;
   const cdc=document.getElementById('filterCdc').value;
   const doc=document.getElementById('filterDocente').value;
+  const tipo=document.getElementById('filterTipoOra').value;
+  const POT_CLASSI=['Potenziamento','Ora Eccedente'];
   filtered=db.filter(r=>{
     const txt=[r.piano,r.classe,r.disciplina,r.docente_a,r.docente_b,r.codice].join(' ').toLowerCase();
-    return(!q||txt.includes(q))&&(!piano||r.piano===piano)&&(!cdc||r.cdc_a===cdc)&&(!doc||r.docente_a===doc);
+    if(!(!q||txt.includes(q)))return false;
+    if(!(!piano||r.piano===piano))return false;
+    if(!(!cdc||r.cdc_a===cdc))return false;
+    if(!(!doc||r.docente_a===doc))return false;
+    if(tipo==='Potenziamento')return r.classe==='Potenziamento';
+    if(tipo==='Ora Eccedente')return r.classe==='Ora Eccedente';
+    if(tipo==='Supplenze'||tipo==='Staff'||tipo==='Alternativa IRC')return POT_CLASSI.includes(r.classe)&&r.disciplina===tipo;
+    return true;
   });
   currentPage=1; renderTable();
 }
-function resetFilters(){['searchInput','filterPiano','filterCdc','filterDocente'].forEach(id=>document.getElementById(id).value='');applyFilters();}
+function resetFilters(){['searchInput','filterPiano','filterCdc','filterDocente','filterTipoOra'].forEach(id=>document.getElementById(id).value='');applyFilters();}
 function sortBy(col){if(sortCol===col)sortDir*=-1;else{sortCol=col;sortDir=1;}document.querySelectorAll('thead th span').forEach(s=>s.textContent='');const el=document.getElementById('sort-'+col);if(el)el.textContent=sortDir===1?' ↑':' ↓';filtered.sort((a,b)=>(a[col]||'').localeCompare(b[col]||'','it')*sortDir);renderTable();}
 
 function renderTable() {
@@ -719,8 +774,9 @@ function saveRecord(){
   if(editingId!==null){const idx=db.findIndex(x=>x.id===editingId);db[idx]={...db[idx],...rec};toast('Aggiornato ✓','success');}
   else{const nid=Math.max(0,...db.map(x=>x.id))+1;db.push({id:nid,...rec});toast('Aggiunto ✓','success');}
   closeModalById('modalOverlay');applyFilters();
+  if(document.getElementById('page-dipartimenti').classList.contains('active'))renderDipContent();
 }
-function deleteRecord(id){if(currentRole!=='admin')return;if(!confirm('Eliminare questa assegnazione?'))return;db=db.filter(x=>x.id!==id);filtered=filtered.filter(x=>x.id!==id);renderTable();toast('Eliminato','error');}
+function deleteRecord(id){if(currentRole!=='admin')return;if(!confirm('Eliminare questa assegnazione?'))return;db=db.filter(x=>x.id!==id);filtered=filtered.filter(x=>x.id!==id);renderTable();toast('Eliminato','error');if(document.getElementById('page-dipartimenti').classList.contains('active'))renderDipContent();}
 
 // ============================================================
 // PIANI DI STUDIO
@@ -1015,6 +1071,359 @@ function filterByDocente(name){
   document.querySelectorAll('.nav-item').forEach((n,i)=>{if(i!==0)n.classList.remove('active');});
   document.getElementById('filterDocente').value=name;
   applyFilters();
+}
+
+// ============================================================
+// DIPARTIMENTI
+// ============================================================
+const DIPARTIMENTI_LIST = [
+  {nome:'Italiano',       cdcs:['A12']},
+  {nome:'Chimica',        cdcs:['A34','B12']},
+  {nome:'Matematica',     cdcs:['A26','A27']},
+  {nome:'Inglese',        cdcs:['AB24']},
+  {nome:'Scienze e Biologia', cdcs:['A50']},
+  {nome:'Fisica',         cdcs:['A20','B03']},
+  {nome:'Geometri e TTRG',cdcs:['A37','B14']},
+  {nome:'Scienze Motorie',cdcs:['A48']},
+  {nome:'Agraria',        cdcs:['A51','A52','B11']},
+  {nome:'Diritto',        cdcs:['A46']},
+  {nome:'Elettrotecnica', cdcs:['A40','B15']},
+  {nome:'Religione',      cdcs:['IRC','RC']},
+  {nome:'Informatica',    cdcs:['A41','B16']},
+  {nome:'Meccanica',      cdcs:['A42','B17']},
+  {nome:'Moda',           cdcs:['A44','B18']},
+];
+let currentDip = 0;
+let currentDipLeftTab = 0;
+let dipTipoFilter = '';
+let potTipoFilter = '';
+
+function renderDipartimenti(){
+  const tabsEl=document.getElementById('dipTabs');
+  tabsEl.innerHTML=DIPARTIMENTI_LIST.map((d,i)=>
+    `<div class="dip-tab${i===currentDip?' active':''}" onclick="selectDip(${i})">${d.nome}</div>`
+  ).join('');
+  renderDipContent();
+}
+function selectDip(i){currentDip=i;currentDipLeftTab=0;renderDipartimenti();}
+function selectDipLeftTab(i){currentDipLeftTab=i;renderDipContent();}
+
+function renderDipContent(){
+  const dip=DIPARTIMENTI_LIST[currentDip];
+  const canEdit=currentRole!=='viewer';
+  // --- LEFT: tabella assegnazioni filtrata per CDC dipartimento ---
+  const POT_CLASSI=['Potenziamento','Ora Eccedente'];
+  let rows=db.filter(r=>dip.cdcs.includes(normCdc(r.cdc_a))||dip.cdcs.includes(normCdc(r.cdc_b)));
+  if(dipTipoFilter==='Potenziamento')rows=rows.filter(r=>r.classe==='Potenziamento');
+  else if(dipTipoFilter==='Ora Eccedente')rows=rows.filter(r=>r.classe==='Ora Eccedente');
+  else if(['Supplenze','Staff','Alternativa IRC'].includes(dipTipoFilter))rows=rows.filter(r=>POT_CLASSI.includes(r.classe)&&r.disciplina===dipTipoFilter);
+  const totA=rows.reduce((s,r)=>s+(parseInt(r.ore_a)||0),0);
+  const totB=rows.reduce((s,r)=>s+(parseInt(r.ore_b)||0),0);
+  // mappa CDC → docenti che hanno quella CDC
+  const teachByCdc={};
+  db.forEach(r=>{
+    [[r.cdc_a,r.docente_a],[r.cdc_b,r.docente_b]].forEach(([c,d])=>{
+      if(!c||!d)return;
+      const k=normCdc(c);
+      if(!teachByCdc[k])teachByCdc[k]=new Set();
+      teachByCdc[k].add(d);
+    });
+  });
+  function docSelect(id,field,cdcRaw,current){
+    const k=normCdc(cdcRaw||'');
+    const opts=[...(teachByCdc[k]||[])].sort();
+    const selStyle='background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 4px;font-size:.72rem;font-family:var(--sans);max-width:130px;width:100%';
+    return`<select style="${selStyle}" onchange="setDipDocente(${id},'${field}',this.value)">
+      <option value=""${!current?' selected':''}>—</option>
+      ${opts.map(t=>`<option value="${t}"${t===current?' selected':''}>${t}</option>`).join('')}
+    </select>`;
+  }
+  const tdS='padding:5px 7px;border-bottom:1px solid var(--border)';
+  const thS='background:var(--surface2);padding:6px 7px;text-align:left;color:var(--muted);font-size:.68rem;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap';
+  const trHtml=rows.length?rows.map(r=>{
+    const isPot=POT_CLASSI.includes(r.classe);
+    const rowBg=isPot?r.classe==='Potenziamento'?';background:rgba(251,191,36,.06)':';background:rgba(124,95,247,.06)':'';
+    return`<tr style="font-size:.76rem${rowBg}">
+    <td style="${tdS};color:var(--muted);font-size:.68rem">${r.piano}</td>
+    <td style="${tdS};font-weight:600">${isPot?(r.classe==='Potenziamento'?'<span class="pot-row-badge pot-badge">POT</span>':'<span class="pot-row-badge ecc-badge">ECC</span>'):r.classe}</td>
+    <td style="${tdS}">${isPot&&canEdit?`<select style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 5px;font-size:.72rem;font-family:var(--sans)" onchange="setPotField(${r.id},'disciplina',this.value)"><option${r.disciplina==='Supplenze'?' selected':''}>Supplenze</option><option${r.disciplina==='Staff'?' selected':''}>Staff</option><option${r.disciplina==='Alternativa IRC'?' selected':''} value="Alternativa IRC">Alternativa IRC</option></select>`:r.disciplina}</td>
+    <td style="${tdS}"><span class="badge badge-cdc" style="font-size:.65rem;padding:1px 5px">${r.cdc_a}</span></td>
+    <td style="${tdS}"><span class="badge badge-ore" style="font-size:.65rem;padding:1px 5px">${r.ore_a}h</span></td>
+    <td style="${tdS}">${canEdit?docSelect(r.id,'docente_a',r.cdc_a,r.docente_a):(r.docente_a||'<span style="color:var(--muted)">—</span>')}</td>
+    <td style="${tdS}">${r.cdc_b?`<span class="badge badge-b" style="font-size:.65rem;padding:1px 5px">${r.cdc_b}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
+    <td style="${tdS}">${r.ore_b?`<span class="badge badge-ore" style="font-size:.65rem;padding:1px 5px">${r.ore_b}h</span>`:'<span style="color:var(--muted)">—</span>'}</td>
+    <td style="${tdS}">${r.cdc_b&&canEdit?docSelect(r.id,'docente_b',r.cdc_b,r.docente_b):(r.docente_b||'<span style="color:var(--muted)">—</span>')}</td>
+    <td style="${tdS}"><div class="action-btns">${canEdit?`<button class="btn-icon edit" style="padding:3px 6px;font-size:.7rem" onclick="openEdit(${r.id})">✏️</button>`:''} ${currentRole==='admin'?`<button class="btn-icon del" style="padding:3px 6px;font-size:.7rem" onclick="deleteRecord(${r.id})">🗑</button>`:''}</div></td>
+  </tr>`;
+  }).join(''):`<tr><td colspan="10"><div class="empty-state" style="padding:30px 20px"><div class="empty-state-icon">🔍</div><div>Nessuna assegnazione</div></div></td></tr>`;
+  const dipTipoSel=`<select style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 6px;font-size:.75rem;font-family:var(--sans)" onchange="dipTipoFilter=this.value;renderDipContent()">
+    <option value=""${dipTipoFilter===''?' selected':''}>Tutte</option>
+    <option value="Potenziamento"${dipTipoFilter==='Potenziamento'?' selected':''}>🟡 Potenziamento</option>
+    <option value="Ora Eccedente"${dipTipoFilter==='Ora Eccedente'?' selected':''}>🟣 Ora Eccedente</option>
+    <option value="Supplenze"${dipTipoFilter==='Supplenze'?' selected':''}>Supplenze</option>
+    <option value="Staff"${dipTipoFilter==='Staff'?' selected':''}>Staff</option>
+    <option value="Alternativa IRC"${dipTipoFilter==='Alternativa IRC'?' selected':''}>Alternativa IRC</option>
+  </select>`;
+  document.getElementById('dipLeft').innerHTML=`
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+      <div style="padding:8px 12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+        <span style="display:flex;align-items:center;gap:8px"><span style="font-weight:600;font-size:.85rem">Assegnazioni — ${dip.nome}</span>${dipTipoSel}</span>
+        <span style="display:flex;gap:5px"><span class="badge badge-cdc" style="font-size:.68rem">${rows.length} righe</span><span class="badge badge-ore" style="font-size:.68rem">${totA}h A</span>${totB?`<span class="badge badge-b" style="font-size:.68rem">${totB}h B</span>`:''}</span>
+      </div>
+      <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr>
+          <th style="${thS}">Piano</th><th style="${thS}">Classe</th><th style="${thS}">Disciplina</th>
+          <th style="${thS}">CDC A</th><th style="${thS}">Ore</th><th style="${thS}">Docente A</th>
+          <th style="${thS}">CDC B</th><th style="${thS}">Ore B</th><th style="${thS}">Docente B</th>
+          <th style="${thS}"></th>
+        </tr></thead>
+        <tbody>${trHtml}</tbody>
+      </table>
+      </div>
+    </div>`;
+  renderDipRight(dip);
+}
+
+function renderDipRight(dip){
+  const map={};
+  db.forEach(r=>{
+    [r.docente_a,r.docente_b].forEach((d,idx)=>{
+      if(!d)return;
+      const cdcKey=idx===0?r.cdc_a:r.cdc_b;
+      const ore=idx===0?parseInt(r.ore_a)||0:parseInt(r.ore_b)||0;
+      const isPot=['Potenziamento','Ora Eccedente'].includes(r.classe);
+      if(!map[d])map[d]={name:d,cdcs:new Set(),ore:0,righe:[]};
+      if(cdcKey)map[d].cdcs.add(cdcKey);
+      map[d].ore+=ore;
+      map[d].righe.push({classe:r.classe,disciplina:r.disciplina,ore,isPot});
+    });
+  });
+  Object.values(map).forEach(d=>{d.dipartimento=getDipartimento(d.name,[...d.cdcs]);});
+  const docenti=Object.values(map).filter(d=>d.dipartimento===dip.nome).sort((a,b)=>a.name.localeCompare(b.name,'it'));
+  const dipRight=document.getElementById('dipRight');
+  if(!docenti.length){dipRight.innerHTML='<div class="empty-state"><div class="empty-state-icon">👤</div><div>Nessun docente</div></div>';return;}
+  dipRight.innerHTML='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">'+docenti.map(d=>{
+    const righeHTML=d.righe.sort((a,b)=>a.classe.localeCompare(b.classe,'it')).map(r=>{
+      const potStyle=r.isPot?';color:var(--yellow)':';color:var(--muted)';
+      const classeStyle=r.isPot?'color:var(--yellow);font-style:italic':'color:var(--text)';
+      return`<tr><td style="padding:1px 4px 1px 0;font-size:.68rem;${classeStyle}">${r.classe}</td><td style="padding:1px 4px 1px 0;font-size:.68rem${potStyle};max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.disciplina}</td><td style="padding:1px 0;font-size:.68rem;color:var(--accent);text-align:right;white-space:nowrap">${r.ore}h</td></tr>`;
+    }).join('');
+    const nameEsc=d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+    const incomplete=d.ore<18;
+    return`<div class="docente-card${incomplete?' incomplete':''}" style="padding:10px;cursor:default">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;gap:4px">
+        <div style="font-weight:600;font-size:.78rem;cursor:pointer;line-height:1.2" onclick="filterByDocente('${nameEsc}')">${d.name}</div>
+        <span style="font-size:.68rem;color:${incomplete?'var(--red)':'var(--accent)'};font-weight:600;white-space:nowrap">${incomplete?'<span class="cattedra-alert">&#9888;</span> ':''} ${d.ore}h</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:5px">${[...d.cdcs].map(c=>`<span class="badge badge-cdc" style="font-size:.62rem;padding:1px 5px">${c}</span>`).join('')}</div>
+      <table style="width:100%;border-collapse:collapse">${righeHTML}</table>
+    </div>`;
+  }).join('')+'</div>';
+}
+
+function renderDipPotContent(dip,canEdit,innerTabsHtml){
+  // docenti filtrati per CDC del dipartimento
+  const teachByCdc={};
+  db.forEach(r=>{
+    [[r.cdc_a,r.docente_a],[r.cdc_b,r.docente_b]].forEach(([c,d])=>{
+      if(!c||!d)return;
+      const k=normCdc(c);
+      if(!teachByCdc[k])teachByCdc[k]=new Set();
+      teachByCdc[k].add(d);
+    });
+  });
+  const cdcOpts=dip.cdcs.map(c=>`<option value="${c}">${c}</option>`).join('');
+  const allTeachers=[...new Set(dip.cdcs.flatMap(c=>[...(teachByCdc[c]||[])]))].sort();
+  const teachOpts='<option value="">— nessuno —</option>'+allTeachers.map(t=>`<option value="${t}">${t}</option>`).join('');
+  // righe pot/eccedente esistenti per questo dipartimento
+  const potRows=db.filter(r=>['Potenziamento','Ora Eccedente'].includes(r.classe)&&(dip.cdcs.includes(normCdc(r.cdc_a))||dip.cdcs.includes(normCdc(r.cdc_b))));
+  const thS='background:var(--surface2);padding:6px 8px;text-align:left;color:var(--muted);font-size:.68rem;text-transform:uppercase;border-bottom:1px solid var(--border)';
+  const tdS='padding:5px 8px;border-bottom:1px solid var(--border);font-size:.76rem';
+  const potTr=potRows.length?potRows.map(r=>{
+    const badge=r.classe==='Potenziamento'?'<span class="pot-row-badge pot-badge">POT</span>':'<span class="pot-row-badge ecc-badge">ECC</span>';
+    return`<tr>
+      <td style="${tdS}">${badge}</td>
+      <td style="${tdS}"><span class="badge badge-cdc" style="font-size:.65rem">${r.cdc_a}</span></td>
+      <td style="${tdS}">${r.disciplina}</td>
+      <td style="${tdS};color:var(--accent);font-weight:600">${r.ore_a}h</td>
+      <td style="${tdS}">${r.docente_a||'<span style="color:var(--muted)">—</span>'}</td>
+      <td style="${tdS}">${canEdit?`<button class="btn-icon del" style="padding:3px 6px;font-size:.7rem" onclick="deleteRecord(${r.id})">🗑</button>`:''}</td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted);font-size:.8rem">Nessuna ora di potenziamento / eccedente</td></tr>`;
+  const selStyle='background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 8px;font-size:.8rem;font-family:var(--sans);width:100%';
+  document.getElementById('dipLeft').innerHTML=innerTabsHtml+`
+    ${canEdit?`<div class="pot-form">
+      <div style="grid-column:1/-1;font-weight:600;font-size:.85rem;margin-bottom:4px">Genera ore</div>
+      <div><label style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:3px">TIPO</label>
+        <select id="potTipo" style="${selStyle}"><option value="Potenziamento">Potenziamento</option><option value="Ora Eccedente">Ora Eccedente</option></select></div>
+      <div><label style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:3px">CDC</label>
+        <select id="potCdc" style="${selStyle}">${cdcOpts}</select></div>
+      <div><label style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:3px">N° ORE</label>
+        <input type="number" id="potOre" min="1" max="20" value="2" style="${selStyle}"></div>
+      <div><label style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:3px">DISCIPLINA</label>
+        <select id="potDisciplina" style="${selStyle}"><option value="Supplenze">Supplenze</option><option value="Staff">Staff</option><option value="Alternativa IRC">Alternativa IRC</option></select></div>
+      <div style="grid-column:1/-1"><label style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:3px">DOCENTE</label>
+        <select id="potDocente" style="${selStyle}">${teachOpts}</select></div>
+      <div style="grid-column:1/-1"><button class="btn btn-primary" style="width:100%" onclick="createPotRows()">Genera righe</button></div>
+    </div>`:''}
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+      <div style="padding:8px 12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between">
+        <span style="font-weight:600;font-size:.85rem">Ore esistenti</span>
+        <span class="badge badge-ore" style="font-size:.68rem">${potRows.reduce((s,r)=>s+(parseInt(r.ore_a)||0),0)}h tot</span>
+      </div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr><th style="${thS}">Tipo</th><th style="${thS}">CDC</th><th style="${thS}">Disciplina</th><th style="${thS}">Ore</th><th style="${thS}">Docente</th><th style="${thS}"></th></tr></thead>
+        <tbody>${potTr}</tbody>
+      </table>
+    </div>`;
+}
+function setPotField(id,field,val){
+  const idx=db.findIndex(x=>x.id===id);
+  if(idx===-1)return;
+  db[idx][field]=val;
+  try{localStorage.setItem('organico_db',JSON.stringify(db));}catch(e){}
+  applyFilters();
+  if(document.getElementById('page-potenziamento').classList.contains('active'))renderPotenziamentoPage();
+  if(document.getElementById('page-dipartimenti').classList.contains('active'))renderDipContent();
+}
+function setDipDocente(id,field,val){
+  const idx=db.findIndex(x=>x.id===id);
+  if(idx===-1)return;
+  db[idx][field]=val;
+  try{localStorage.setItem('organico_db',JSON.stringify(db));}catch(e){}
+  applyFilters();
+  renderDipContent();
+  toast('Docente aggiornato ✓','success');
+}
+function createPotRows(){
+  const tipo=document.getElementById('potTipo').value;
+  const cdc=document.getElementById('potCdc').value;
+  const ore=parseInt(document.getElementById('potOre').value)||0;
+  const disciplina=document.getElementById('potDisciplina').value;
+  const docente=document.getElementById('potDocente').value;
+  if(ore<1||ore>20){toast('Ore non valide','error');return;}
+  let nextId=Math.max(0,...db.map(x=>x.id))+1;
+  for(let i=0;i<ore;i++){
+    db.push({id:nextId++,piano:'',classe:tipo,disciplina,codice:'',cdc_a:cdc,ore_a:'1',cdc_b:'',ore_b:'',docente_a:docente,docente_b:'',potenziamento:'1'});
+  }
+  try{localStorage.setItem('organico_db',JSON.stringify(db));}catch(e){}
+  applyFilters();
+  renderPotenziamentoPage();
+  toast(`${ore} ora/e ${tipo} generate ✓`,'success');
+}
+
+function renderPotenziamentoPage(){
+  const canEdit=currentRole!=='viewer';
+  // costruisci lista CDC + docenti per il form
+  const teachByCdc={};
+  db.forEach(r=>{
+    [[r.cdc_a,r.docente_a],[r.cdc_b,r.docente_b]].forEach(([c,d])=>{
+      if(!c||!d)return;
+      const k=normCdc(c);
+      if(!teachByCdc[k])teachByCdc[k]=new Set();
+      teachByCdc[k].add(d);
+    });
+  });
+  const allCdcs=Object.keys(CDC_DIPARTIMENTO).sort();
+  const cdcOpts=allCdcs.map(c=>`<option value="${c}">${c} — ${CDC_DIPARTIMENTO[c]}</option>`).join('');
+  const selStyle='background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 8px;font-size:.82rem;font-family:var(--sans);width:100%';
+  // form sinistra
+  if(canEdit){
+    document.getElementById('potFormPanel').innerHTML=`
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px">
+        <div style="font-family:var(--serif);font-size:1.1rem;margin-bottom:16px">Genera ore</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div><label style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">TIPO</label>
+            <select id="potTipo" style="${selStyle}"><option value="Potenziamento">Potenziamento</option><option value="Ora Eccedente">Ora Eccedente</option></select></div>
+          <div><label style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">CLASSE DI CONCORSO</label>
+            <select id="potCdc" onchange="updatePotDocenti()" style="${selStyle}">${cdcOpts}</select></div>
+          <div><label style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">N° ORE</label>
+            <input type="number" id="potOre" min="1" max="20" value="2" style="${selStyle}"></div>
+          <div><label style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">DISCIPLINA / USO</label>
+            <select id="potDisciplina" style="${selStyle}"><option value="Supplenze">Supplenze</option><option value="Staff">Staff</option><option value="Alternativa IRC">Alternativa IRC</option></select></div>
+          <div><label style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">DOCENTE</label>
+            <select id="potDocente" style="${selStyle}"><option value="">— nessuno —</option></select></div>
+          <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="createPotRows()">Genera righe</button>
+        </div>
+      </div>`;
+    updatePotDocenti();
+  } else {
+    document.getElementById('potFormPanel').innerHTML='';
+  }
+  // tabella destra — tutte le righe pot/eccedente
+  const potTipoSel=`<select style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 8px;font-size:.78rem;font-family:var(--sans)" onchange="potTipoFilter=this.value;renderPotenziamentoPage()">
+    <option value=""${potTipoFilter===''?' selected':''}>Tutte</option>
+    <option value="Potenziamento"${potTipoFilter==='Potenziamento'?' selected':''}>🟡 Potenziamento</option>
+    <option value="Ora Eccedente"${potTipoFilter==='Ora Eccedente'?' selected':''}>🟣 Ora Eccedente</option>
+    <option value="Supplenze"${potTipoFilter==='Supplenze'?' selected':''}>Supplenze</option>
+    <option value="Staff"${potTipoFilter==='Staff'?' selected':''}>Staff</option>
+    <option value="Alternativa IRC"${potTipoFilter==='Alternativa IRC'?' selected':''}>Alternativa IRC</option>
+  </select>`;
+  let potRows=db.filter(r=>['Potenziamento','Ora Eccedente'].includes(r.classe));
+  if(potTipoFilter==='Potenziamento')potRows=potRows.filter(r=>r.classe==='Potenziamento');
+  else if(potTipoFilter==='Ora Eccedente')potRows=potRows.filter(r=>r.classe==='Ora Eccedente');
+  else if(['Supplenze','Staff','Alternativa IRC'].includes(potTipoFilter))potRows=potRows.filter(r=>r.disciplina===potTipoFilter);
+  const thS='background:var(--surface2);padding:8px 12px;text-align:left;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);white-space:nowrap';
+  const tdS='padding:7px 12px;border-bottom:1px solid var(--border);font-size:.8rem';
+  const totPot=potRows.filter(r=>r.classe==='Potenziamento').reduce((s,r)=>s+(parseInt(r.ore_a)||0),0);
+  const totEcc=potRows.filter(r=>r.classe==='Ora Eccedente').reduce((s,r)=>s+(parseInt(r.ore_a)||0),0);
+  const trHtml=potRows.length?potRows.map(r=>`<tr>
+    <td style="${tdS}">${r.classe==='Potenziamento'?'<span class="pot-row-badge pot-badge">POT</span>':'<span class="pot-row-badge ecc-badge">ECC</span>'}</td>
+    <td style="${tdS}"><span class="badge badge-cdc">${r.cdc_a}</span></td>
+    <td style="${tdS};color:var(--muted);font-size:.74rem">${CDC_DIPARTIMENTO[normCdc(r.cdc_a)]||'—'}</td>
+    <td style="${tdS}">${canEdit?`<select style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:3px 6px;font-size:.76rem;font-family:var(--sans)" onchange="setPotField(${r.id},'disciplina',this.value)"><option${r.disciplina==='Supplenze'?' selected':''}>Supplenze</option><option${r.disciplina==='Staff'?' selected':''}>Staff</option><option${r.disciplina==='Alternativa IRC'?' selected':''} value="Alternativa IRC">Alternativa IRC</option></select>`:r.disciplina}</td>
+    <td style="${tdS};color:var(--accent);font-weight:600">${r.ore_a}h</td>
+    <td style="${tdS}">${r.docente_a||'<span style="color:var(--muted)">—</span>'}</td>
+    <td style="${tdS}">${canEdit?`<button class="btn-icon del" style="padding:3px 6px;font-size:.7rem" onclick="deletePotRecord(${r.id})">🗑</button>`:''}</td>
+  </tr>`).join(''):`<tr><td colspan="7" style="padding:30px;text-align:center;color:var(--muted)">Nessuna ora inserita</td></tr>`;
+  document.getElementById('potTablePanel').innerHTML=`
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <span style="display:flex;align-items:center;gap:8px"><span style="font-family:var(--serif);font-size:1.05rem">Ore assegnate</span>${potTipoSel}</span>
+        <span style="display:flex;gap:6px">
+          <span class="pot-row-badge pot-badge">${totPot}h Pot</span>
+          <span class="pot-row-badge ecc-badge">${totEcc}h Ecc</span>
+          <span class="badge badge-ore">${potRows.length} righe</span>
+        </span>
+      </div>
+      <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr>
+          <th style="${thS}">Tipo</th><th style="${thS}">CDC</th><th style="${thS}">Dipartimento</th>
+          <th style="${thS}">Uso</th><th style="${thS}">Ore</th><th style="${thS}">Docente</th><th style="${thS}"></th>
+        </tr></thead>
+        <tbody>${trHtml}</tbody>
+      </table>
+      </div>
+    </div>`;
+}
+function updatePotDocenti(){
+  const cdc=document.getElementById('potCdc');
+  const sel=document.getElementById('potDocente');
+  if(!cdc||!sel)return;
+  const k=normCdc(cdc.value);
+  const teachByCdc={};
+  db.forEach(r=>{
+    [[r.cdc_a,r.docente_a],[r.cdc_b,r.docente_b]].forEach(([c,d])=>{
+      if(!c||!d)return;
+      const kk=normCdc(c);
+      if(!teachByCdc[kk])teachByCdc[kk]=new Set();
+      teachByCdc[kk].add(d);
+    });
+  });
+  const opts=[...(teachByCdc[k]||[])].sort();
+  sel.innerHTML='<option value="">— nessuno —</option>'+opts.map(t=>`<option value="${t}">${t}</option>`).join('');
+}
+function deletePotRecord(id){
+  if(currentRole!=='admin')return;
+  if(!confirm('Eliminare questa ora?'))return;
+  db=db.filter(x=>x.id!==id);
+  filtered=filtered.filter(x=>x.id!==id);
+  try{localStorage.setItem('organico_db',JSON.stringify(db));}catch(e){}
+  applyFilters();
+  renderPotenziamentoPage();
+  toast('Eliminato','error');
 }
 
 // ============================================================
