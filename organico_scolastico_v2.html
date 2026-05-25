@@ -761,6 +761,33 @@ function resetDipartimentiDefault(){
   if(active&&active.id==='page-dipartimenti'){currentDip=0;renderDipartimenti();}
   toast('Dipartimenti ripristinati','success');
 }
+function getAllCdcsFromPiani(){
+  const s=new Set();
+  Object.values(piani).forEach(p=>(p.materie||[]).forEach(m=>{
+    const a=normCdc(m.cdc_a||''); if(a&&a!=='---')s.add(a);
+    const b=normCdc(m.cdc_b||''); if(b&&b!=='---')s.add(b);
+  }));
+  // anche da db (classi importate via CSV con CDC non nei piani)
+  db.forEach(r=>{
+    const a=normCdc(r.cdc_a||''); if(a&&a!=='---')s.add(a);
+    const b=normCdc(r.cdc_b||''); if(b&&b!=='---')s.add(b);
+  });
+  return [...s].sort();
+}
+function mkCdcCheckboxes(containerId, selectedCdcs){
+  const allCdcs=getAllCdcsFromPiani();
+  const sel=new Set(selectedCdcs);
+  return `<div id="${containerId}" style="max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:6px;padding:8px 10px;display:flex;flex-direction:column;gap:4px;background:var(--bg)">` +
+    allCdcs.map(c=>`<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.82rem">
+      <input type="checkbox" value="${c}"${sel.has(c)?' checked':''}>
+      <span style="font-family:monospace;font-weight:600;min-width:50px">${c}</span>
+      <span style="color:var(--muted);font-size:.78rem">${cdcDipMap[c]||''}</span>
+    </label>`).join('') +
+  `</div>`;
+}
+function readCdcCheckboxes(containerId){
+  return [...document.querySelectorAll(`#${containerId} input[type=checkbox]:checked`)].map(cb=>cb.value);
+}
 let _editingDipIdx=-1;
 function renderDipImpostazioni(){
   const el=document.getElementById('dipListContainer');
@@ -768,11 +795,14 @@ function renderDipImpostazioni(){
   let html=`<div style="display:flex;flex-direction:column;gap:8px">`;
   dipartimentiList.forEach((d,i)=>{
     if(i===_editingDipIdx){
-      html+=`<div style="display:flex;gap:8px;align-items:center;background:var(--bg-card);border:1px solid var(--accent);border-radius:8px;padding:10px">
-        <input id="dipEditNome_${i}" class="form-input" style="flex:1;height:32px;font-size:.85rem" value="${d.nome.replace(/"/g,'&quot;')}">
-        <input id="dipEditCdcs_${i}" class="form-input" style="flex:2;height:32px;font-size:.85rem;font-family:monospace" value="${d.cdcs.join(', ')}" placeholder="A12, B12, ...">
-        <button class="btn btn-primary" style="padding:4px 12px;font-size:.8rem" onclick="saveDipEdit(${i})">Salva</button>
-        <button class="btn btn-ghost" style="padding:4px 10px;font-size:.8rem" onclick="_editingDipIdx=-1;renderDipImpostazioni()">✕</button>
+      html+=`<div style="background:var(--bg-card);border:1px solid var(--accent);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px">
+        <input id="dipEditNome_${i}" class="form-input" style="height:34px;font-size:.88rem;font-weight:600" value="${d.nome.replace(/"/g,'&quot;')}" placeholder="Nome dipartimento">
+        <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">Classi di concorso</div>
+        ${mkCdcCheckboxes('dipCdcPick_'+i, d.cdcs)}
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button class="btn btn-ghost" style="font-size:.82rem" onclick="_editingDipIdx=-1;renderDipImpostazioni()">Annulla</button>
+          <button class="btn btn-primary" style="font-size:.82rem" onclick="saveDipEdit(${i})">Salva</button>
+        </div>
       </div>`;
     } else {
       html+=`<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card)">
@@ -784,11 +814,14 @@ function renderDipImpostazioni(){
     }
   });
   if(_editingDipIdx===-2){
-    html+=`<div style="display:flex;gap:8px;align-items:center;background:var(--bg-card);border:1px solid var(--green);border-radius:8px;padding:10px">
-      <input id="dipNewNome" class="form-input" style="flex:1;height:32px;font-size:.85rem" placeholder="Nome dipartimento">
-      <input id="dipNewCdcs" class="form-input" style="flex:2;height:32px;font-size:.85rem;font-family:monospace" placeholder="A12, B12, ...">
-      <button class="btn btn-primary" style="padding:4px 12px;font-size:.8rem" onclick="addNewDip()">Aggiungi</button>
-      <button class="btn btn-ghost" style="padding:4px 10px;font-size:.8rem" onclick="_editingDipIdx=-1;renderDipImpostazioni()">✕</button>
+    html+=`<div style="background:var(--bg-card);border:1px solid var(--green);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px">
+      <input id="dipNewNome" class="form-input" style="height:34px;font-size:.88rem;font-weight:600" placeholder="Nome dipartimento">
+      <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">Classi di concorso</div>
+      ${mkCdcCheckboxes('dipCdcPickNew', [])}
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-ghost" style="font-size:.82rem" onclick="_editingDipIdx=-1;renderDipImpostazioni()">Annulla</button>
+        <button class="btn btn-primary" style="font-size:.82rem" onclick="addNewDip()">Aggiungi</button>
+      </div>
     </div>`;
   } else {
     html+=`<button class="btn btn-ghost" style="margin-top:4px" onclick="_editingDipIdx=-2;renderDipImpostazioni()">+ Aggiungi dipartimento</button>`;
@@ -798,7 +831,7 @@ function renderDipImpostazioni(){
 }
 function saveDipEdit(i){
   const nome=document.getElementById(`dipEditNome_${i}`).value.trim();
-  const cdcs=document.getElementById(`dipEditCdcs_${i}`).value.split(',').map(c=>c.trim().toUpperCase()).filter(Boolean);
+  const cdcs=readCdcCheckboxes('dipCdcPick_'+i);
   if(!nome){toast('Nome obbligatorio','error');return;}
   const list=JSON.parse(JSON.stringify(dipartimentiList));
   list[i]={nome,cdcs};
@@ -816,7 +849,7 @@ function deleteDip(i){
 }
 function addNewDip(){
   const nome=document.getElementById('dipNewNome').value.trim();
-  const cdcs=document.getElementById('dipNewCdcs').value.split(',').map(c=>c.trim().toUpperCase()).filter(Boolean);
+  const cdcs=readCdcCheckboxes('dipCdcPickNew');
   if(!nome){toast('Nome obbligatorio','error');return;}
   const list=JSON.parse(JSON.stringify(dipartimentiList));
   list.push({nome,cdcs});
