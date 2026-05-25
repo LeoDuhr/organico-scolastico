@@ -440,6 +440,14 @@ tbody td{padding:9px 14px;vertical-align:middle}
               <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Nomi visualizzati nei filtri dei Consigli di Classe. Rilevati automaticamente dai piani di studio. Il tasto ↺ ripristina il valore di default.</div>
               <div id="specLabelsContainer"><span style="color:var(--muted);font-size:.85rem">Caricamento…</span></div>
             </div>
+            <div class="ore-card" style="padding:18px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+                <div style="font-weight:600">🏛️ Dipartimenti</div>
+                <button class="btn btn-ghost" style="padding:2px 10px;font-size:.75rem;color:var(--muted)" onclick="resetDipartimentiDefault()">↺ Ripristina default</button>
+              </div>
+              <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">CDC separati da virgola (es. A12, B12). Modifiche aggiornano subito filtri e pagina Dipartimenti.</div>
+              <div id="dipListContainer"><span style="color:var(--muted);font-size:.85rem">Caricamento…</span></div>
+            </div>
           </div>
         </div>
       </div>
@@ -652,23 +660,26 @@ let db = (function(){
   }catch(e){return JSON.parse(JSON.stringify(ASSEGNAZIONI_SEED));}
 })();
 
-const CDC_DIPARTIMENTO = {
-  'A12':'Italiano','A18':'Italiano',
-  'A34':'Chimica','B12':'Chimica',
-  'A26':'Matematica','A27':'Matematica',
-  'AB24':'Inglese',
-  'A48':'Scienze Motorie',
-  'A50':'Scienze e Biologia',
-  'A51':'Agraria','A52':'Agraria','B11':'Agraria',
-  'A20':'Fisica','B03':'Fisica',
-  'A46':'Diritto',
-  'A37':'Geometri e TTRG','B14':'Geometri e TTRG',
-  'A40':'Elettrotecnica','B15':'Elettrotecnica','---':'Elettrotecnica',
-  'RC':'Religione','IRC':'Religione',
-  'A41':'Informatica','B16':'Informatica',
-  'A42':'Meccanica','B17':'Meccanica',
-  'A44':'Moda','B18':'Moda'
-};
+const DIPARTIMENTI_DEFAULT = [
+  {nome:'Italiano',          cdcs:['A12','A18']},
+  {nome:'Chimica',           cdcs:['A34','B12']},
+  {nome:'Matematica',        cdcs:['A26','A27']},
+  {nome:'Inglese',           cdcs:['AB24']},
+  {nome:'Scienze e Biologia',cdcs:['A50']},
+  {nome:'Fisica',            cdcs:['A20','B03']},
+  {nome:'Geometri e TTRG',   cdcs:['A37','B14']},
+  {nome:'Scienze Motorie',   cdcs:['A48']},
+  {nome:'Agraria',           cdcs:['A51','A52','B11']},
+  {nome:'Diritto',           cdcs:['A46']},
+  {nome:'Elettrotecnica',    cdcs:['A40','B15','---']},
+  {nome:'Religione',         cdcs:['IRC','RC']},
+  {nome:'Informatica',       cdcs:['A41','B16']},
+  {nome:'Meccanica',         cdcs:['A42','B17']},
+  {nome:'Moda',              cdcs:['A44','B18']},
+];
+function buildCdcDipMap(list){const m={};list.forEach(d=>d.cdcs.forEach(c=>{m[c]=d.nome;}));return m;}
+let dipartimentiList=(function(){try{const s=localStorage.getItem('organico_dipartimenti');return s?JSON.parse(s):JSON.parse(JSON.stringify(DIPARTIMENTI_DEFAULT));}catch(e){return JSON.parse(JSON.stringify(DIPARTIMENTI_DEFAULT));}})();
+let cdcDipMap=buildCdcDipMap(dipartimentiList);
 let dipartimentoOverride = (function(){try{const s=localStorage.getItem('organico_dip');return s?JSON.parse(s):{}}catch(e){return {};}})();
 let cattedraOverride = (function(){try{const s=localStorage.getItem('organico_cattedra');return s?JSON.parse(s):{}}catch(e){return {};}})();
 const SPEC_LABELS_DEFAULT = {
@@ -695,7 +706,7 @@ function setCattedraDocente(nome){
   if(n===18)delete cattedraOverride[nome];else cattedraOverride[nome]=n;
   saveCattedraOverride();
   renderDocenti();
-  if(document.getElementById('page-dipartimenti').classList.contains('active'))renderDipRight(DIPARTIMENTI_LIST[currentDip]);
+  if(document.getElementById('page-dipartimenti').classList.contains('active'))renderDipRight(dipartimentiList[currentDip]);
 }
 function normCdc(cdc){return (cdc||'').split('/')[0].trim();}
 
@@ -726,11 +737,93 @@ function getDipartimento(docente, cdcs){
   if(dipartimentoOverride[docente])return dipartimentoOverride[docente];
   for(const cdc of cdcs){
     const k=normCdc(cdc);
-    if(CDC_DIPARTIMENTO[k])return CDC_DIPARTIMENTO[k];
+    if(cdcDipMap[k])return cdcDipMap[k];
   }
   return 'Altro';
 }
 function saveDipartimentoOverride(){try{localStorage.setItem('organico_dip',JSON.stringify(dipartimentoOverride));}catch(e){}}
+
+function saveDipartimentiList(list){
+  dipartimentiList=list;
+  cdcDipMap=buildCdcDipMap(list);
+  try{localStorage.setItem('organico_dipartimenti',JSON.stringify(list));}catch(e){}
+  if(document.getElementById('dipListContainer'))renderDipImpostazioni();
+  const active=document.querySelector('.page.active');
+  if(active&&active.id==='page-dipartimenti'){currentDip=Math.min(currentDip||0,dipartimentiList.length-1);renderDipartimenti();}
+}
+function resetDipartimentiDefault(){
+  if(!confirm('Ripristinare i dipartimenti di default? Le modifiche andranno perse.'))return;
+  localStorage.removeItem('organico_dipartimenti');
+  dipartimentiList=JSON.parse(JSON.stringify(DIPARTIMENTI_DEFAULT));
+  cdcDipMap=buildCdcDipMap(dipartimentiList);
+  renderDipImpostazioni();
+  const active=document.querySelector('.page.active');
+  if(active&&active.id==='page-dipartimenti'){currentDip=0;renderDipartimenti();}
+  toast('Dipartimenti ripristinati','success');
+}
+let _editingDipIdx=-1;
+function renderDipImpostazioni(){
+  const el=document.getElementById('dipListContainer');
+  if(!el)return;
+  let html=`<div style="display:flex;flex-direction:column;gap:8px">`;
+  dipartimentiList.forEach((d,i)=>{
+    if(i===_editingDipIdx){
+      html+=`<div style="display:flex;gap:8px;align-items:center;background:var(--bg-card);border:1px solid var(--accent);border-radius:8px;padding:10px">
+        <input id="dipEditNome_${i}" class="form-input" style="flex:1;height:32px;font-size:.85rem" value="${d.nome.replace(/"/g,'&quot;')}">
+        <input id="dipEditCdcs_${i}" class="form-input" style="flex:2;height:32px;font-size:.85rem;font-family:monospace" value="${d.cdcs.join(', ')}" placeholder="A12, B12, ...">
+        <button class="btn btn-primary" style="padding:4px 12px;font-size:.8rem" onclick="saveDipEdit(${i})">Salva</button>
+        <button class="btn btn-ghost" style="padding:4px 10px;font-size:.8rem" onclick="_editingDipIdx=-1;renderDipImpostazioni()">✕</button>
+      </div>`;
+    } else {
+      html+=`<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-card)">
+        <div style="flex:1;font-weight:600;font-size:.88rem">${d.nome}</div>
+        <div style="flex:2;display:flex;gap:4px;flex-wrap:wrap">${d.cdcs.map(c=>`<span style="font-family:monospace;font-size:.75rem;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:1px 6px">${c}</span>`).join('')}</div>
+        <button class="btn btn-ghost" style="padding:2px 10px;font-size:.78rem" onclick="_editingDipIdx=${i};renderDipImpostazioni()">Modifica</button>
+        <button class="btn btn-ghost" style="padding:2px 10px;font-size:.78rem;color:var(--red)" onclick="deleteDip(${i})">Elimina</button>
+      </div>`;
+    }
+  });
+  if(_editingDipIdx===-2){
+    html+=`<div style="display:flex;gap:8px;align-items:center;background:var(--bg-card);border:1px solid var(--green);border-radius:8px;padding:10px">
+      <input id="dipNewNome" class="form-input" style="flex:1;height:32px;font-size:.85rem" placeholder="Nome dipartimento">
+      <input id="dipNewCdcs" class="form-input" style="flex:2;height:32px;font-size:.85rem;font-family:monospace" placeholder="A12, B12, ...">
+      <button class="btn btn-primary" style="padding:4px 12px;font-size:.8rem" onclick="addNewDip()">Aggiungi</button>
+      <button class="btn btn-ghost" style="padding:4px 10px;font-size:.8rem" onclick="_editingDipIdx=-1;renderDipImpostazioni()">✕</button>
+    </div>`;
+  } else {
+    html+=`<button class="btn btn-ghost" style="margin-top:4px" onclick="_editingDipIdx=-2;renderDipImpostazioni()">+ Aggiungi dipartimento</button>`;
+  }
+  html+=`</div>`;
+  el.innerHTML=html;
+}
+function saveDipEdit(i){
+  const nome=document.getElementById(`dipEditNome_${i}`).value.trim();
+  const cdcs=document.getElementById(`dipEditCdcs_${i}`).value.split(',').map(c=>c.trim().toUpperCase()).filter(Boolean);
+  if(!nome){toast('Nome obbligatorio','error');return;}
+  const list=JSON.parse(JSON.stringify(dipartimentiList));
+  list[i]={nome,cdcs};
+  _editingDipIdx=-1;
+  saveDipartimentiList(list);
+  toast('Dipartimento aggiornato ✓','success');
+}
+function deleteDip(i){
+  if(!confirm(`Eliminare il dipartimento "${dipartimentiList[i].nome}"?`))return;
+  const list=JSON.parse(JSON.stringify(dipartimentiList));
+  list.splice(i,1);
+  _editingDipIdx=-1;
+  saveDipartimentiList(list);
+  toast('Dipartimento eliminato','success');
+}
+function addNewDip(){
+  const nome=document.getElementById('dipNewNome').value.trim();
+  const cdcs=document.getElementById('dipNewCdcs').value.split(',').map(c=>c.trim().toUpperCase()).filter(Boolean);
+  if(!nome){toast('Nome obbligatorio','error');return;}
+  const list=JSON.parse(JSON.stringify(dipartimentiList));
+  list.push({nome,cdcs});
+  _editingDipIdx=-1;
+  saveDipartimentiList(list);
+  toast('Dipartimento aggiunto ✓','success');
+}
 let filtered = [...db];
 let currentPage = 1;
 const PAGE_SIZE = 25;
@@ -791,7 +884,7 @@ function showPage(name, el) {
   if(name==='dipartimenti') renderDipartimenti();
   if(name==='potenziamento') renderPotenziamentoPage();
   if(name==='consigli') renderConsigli();
-  if(name==='impostazioni') renderSpecLabels();
+  if(name==='impostazioni'){renderSpecLabels();renderDipImpostazioni();}
 }
 
 // ============================================================
@@ -1193,7 +1286,7 @@ function renderDocenti(){
   }).join('');
 }
 function setDipartimentoDocente(nome){
-  const dipList=Object.values(CDC_DIPARTIMENTO).filter((v,i,a)=>a.indexOf(v)===i).sort();
+  const dipList=dipartimentiList.map(d=>d.nome).sort();
   const attuale=dipartimentoOverride[nome]||'';
   const scelta=prompt(`Dipartimento per ${nome}:\n${dipList.map((d,i)=>`${i+1}. ${d}`).join('\n')}\n\nScrivi il nome:`,attuale);
   if(scelta===null)return;
@@ -1214,30 +1307,13 @@ function filterByDocente(name){
 // ============================================================
 // DIPARTIMENTI
 // ============================================================
-const DIPARTIMENTI_LIST = [
-  {nome:'Italiano',       cdcs:['A12']},
-  {nome:'Chimica',        cdcs:['A34','B12']},
-  {nome:'Matematica',     cdcs:['A26','A27']},
-  {nome:'Inglese',        cdcs:['AB24']},
-  {nome:'Scienze e Biologia', cdcs:['A50']},
-  {nome:'Fisica',         cdcs:['A20','B03']},
-  {nome:'Geometri e TTRG',cdcs:['A37','B14']},
-  {nome:'Scienze Motorie',cdcs:['A48']},
-  {nome:'Agraria',        cdcs:['A51','A52','B11']},
-  {nome:'Diritto',        cdcs:['A46']},
-  {nome:'Elettrotecnica', cdcs:['A40','B15']},
-  {nome:'Religione',      cdcs:['IRC','RC']},
-  {nome:'Informatica',    cdcs:['A41','B16']},
-  {nome:'Meccanica',      cdcs:['A42','B17']},
-  {nome:'Moda',           cdcs:['A44','B18']},
-];
 let currentDip = 0;
 let currentDipLeftTab = 0;
 let dipTipoFilter = '';
 let potTipoFilter = '';
 
 function goToDipartimentoDocente(nome,dipartimento){
-  const idx=DIPARTIMENTI_LIST.findIndex(d=>d.nome===dipartimento);
+  const idx=dipartimentiList.findIndex(d=>d.nome===dipartimento);
   if(idx>=0)currentDip=idx;
   currentDipLeftTab=0;
   dipTipoFilter='';
@@ -1249,7 +1325,7 @@ function goToDipartimentoDocente(nome,dipartimento){
 }
 function renderDipartimenti(){
   const tabsEl=document.getElementById('dipTabs');
-  tabsEl.innerHTML=DIPARTIMENTI_LIST.map((d,i)=>
+  tabsEl.innerHTML=dipartimentiList.map((d,i)=>
     `<div class="dip-tab${i===currentDip?' active':''}" onclick="selectDip(${i})">${d.nome}</div>`
   ).join('');
   renderDipContent();
@@ -1258,7 +1334,7 @@ function selectDip(i){currentDip=i;currentDipLeftTab=0;renderDipartimenti();}
 function selectDipLeftTab(i){currentDipLeftTab=i;renderDipContent();}
 
 function renderDipContent(){
-  const dip=DIPARTIMENTI_LIST[currentDip];
+  const dip=dipartimentiList[currentDip];
   const canEdit=currentRole!=='viewer';
   // --- LEFT: tabella assegnazioni filtrata per CDC dipartimento ---
   const POT_CLASSI=['Potenziamento','Ora Eccedente'];
@@ -1494,8 +1570,8 @@ function renderPotenziamentoPage(){
       teachByCdc[k].add(d);
     });
   });
-  const allCdcs=Object.keys(CDC_DIPARTIMENTO).sort();
-  const cdcOpts=allCdcs.map(c=>`<option value="${c}">${c} — ${CDC_DIPARTIMENTO[c]}</option>`).join('');
+  const allCdcs=Object.keys(cdcDipMap).sort();
+  const cdcOpts=allCdcs.map(c=>`<option value="${c}">${c} — ${cdcDipMap[c]}</option>`).join('');
   const selStyle='background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 8px;font-size:.82rem;font-family:var(--sans);width:100%';
   // form sinistra
   if(canEdit){
@@ -1540,7 +1616,7 @@ function renderPotenziamentoPage(){
   const trHtml=potRows.length?potRows.map(r=>`<tr>
     <td style="${tdS}">${r.classe==='Potenziamento'?'<span class="pot-row-badge pot-badge">POT</span>':'<span class="pot-row-badge ecc-badge">ECC</span>'}</td>
     <td style="${tdS}"><span class="badge badge-cdc">${r.cdc_a}</span></td>
-    <td style="${tdS};color:var(--muted);font-size:.74rem">${CDC_DIPARTIMENTO[normCdc(r.cdc_a)]||'—'}</td>
+    <td style="${tdS};color:var(--muted);font-size:.74rem">${cdcDipMap[normCdc(r.cdc_a)]||'—'}</td>
     <td style="${tdS}">${canEdit?`<select style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:3px 6px;font-size:.76rem;font-family:var(--sans)" onchange="setPotField(${r.id},'disciplina',this.value)"><option${r.disciplina==='Supplenze'?' selected':''}>Supplenze</option><option${r.disciplina==='Staff'?' selected':''}>Staff</option><option${r.disciplina==='Alternativa IRC'?' selected':''} value="Alternativa IRC">Alternativa IRC</option></select>`:r.disciplina}</td>
     <td style="${tdS};color:var(--accent);font-weight:600">${r.ore_a}h</td>
     <td style="${tdS}">${r.docente_a||'<span style="color:var(--muted)">—</span>'}</td>
