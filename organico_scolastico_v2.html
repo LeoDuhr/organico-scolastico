@@ -1690,6 +1690,7 @@ function renderClassi(){
             (haDb?'&#9679; Generata':'&#9675; Da generare')+'</span></td>'+
           '<td style="padding:6px 12px;text-align:right;white-space:nowrap">'+
           (haDb?'<button class="btn btn-ghost" style="font-size:.72rem;padding:3px 8px;color:var(--yellow)" onclick="resetClasse('+realIdx+','+si+')">&#8635; Reset</button>':'')+
+          '<button class="btn btn-ghost" style="font-size:.72rem;padding:3px 8px" onclick="goToConsiglio(\''+sg.nome.replace(/'/g,"\\'")+'\')" title="Consiglio di classe">👥</button>'+
           '</td></tr>';
       });
     } else {
@@ -1703,6 +1704,7 @@ function renderClassi(){
           (haDb?'&#9679; Generata':'&#9675; Da generare')+'</span></td>'+
         '<td style="padding:8px 12px;text-align:right;white-space:nowrap">'+
         (haDb?'<button class="btn btn-ghost" style="font-size:.72rem;padding:3px 8px;color:var(--yellow)" onclick="resetClasse('+realIdx+',null)">&#8635; Reset</button>':'')+
+        '<button class="btn btn-ghost" style="font-size:.72rem;padding:3px 8px" onclick="goToConsiglio(\''+entry.nome.replace(/'/g,"\\'")+'\')" title="Consiglio di classe">👥</button>'+
         '<button class="btn btn-ghost" style="font-size:.72rem;padding:3px 8px;color:var(--red)" onclick="rimuoviClasse('+realIdx+')">&#10005;</button>'+
         '</td></tr>';
     }
@@ -2065,6 +2067,13 @@ function getEntrySpec(entry) {
   if (entry.articolata && entry.sottogruppi && entry.sottogruppi.length)
     return getSpecializzazione(entry.sottogruppi[0].piano_specifico);
   return getSpecializzazione(entry.pianoKey);
+}
+
+function goToConsiglio(nome) {
+  _consigliGridEntries = buildConsigliEntries();
+  const idx = _consigliGridEntries.findIndex(e => e.displayNome === nome || e.classiNomi.includes(nome));
+  if (idx === -1) { toast('Classe non trovata nei consigli', 'error'); return; }
+  openConsigliModal(idx);
 }
 
 function setConsigliPlesso(p){consigliPlessoFilter=consigliPlessoFilter===p?'':p;consigliSpecFilter='';renderConsigli();}
