@@ -184,12 +184,7 @@ tbody td{padding:9px 14px;vertical-align:middle}
 .pot-badge{background:rgba(251,191,36,.12);color:var(--yellow);border:1px solid rgba(251,191,36,.3)}
 .ecc-badge{background:rgba(124,95,247,.12);color:#a78bfa;border:1px solid rgba(124,95,247,.3)}
 /* CONSIGLI */
-.consigli-layout{display:grid;grid-template-columns:290px 1fr;gap:16px;height:calc(100vh - 130px);overflow:hidden}
-.consigli-class-item{padding:9px 13px;border-radius:8px;cursor:pointer;border:1px solid var(--border);background:var(--surface);transition:all .15s;margin-bottom:4px}
-.consigli-class-item:hover{border-color:var(--muted);background:var(--surface2)}
-.consigli-class-item.selected{border-color:var(--accent);background:rgba(79,142,247,.1)}
-.consigli-class-name{font-weight:600;font-size:.88rem;margin-bottom:3px}
-.consigli-class-meta{font-size:.73rem;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}
+.consigli-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px}
 .consigli-pill{padding:4px 11px;border-radius:6px;cursor:pointer;font-size:.77rem;font-weight:500;color:var(--muted);border:1px solid var(--border);background:var(--surface);transition:all .15s;user-select:none;white-space:nowrap}
 .consigli-pill:hover{color:var(--text)}.consigli-pill.active{color:var(--accent);border-color:var(--accent);background:rgba(79,142,247,.1)}
 </style>
@@ -330,15 +325,9 @@ tbody td{padding:9px 14px;vertical-align:middle}
 
       <!-- CONSIGLI DI CLASSE -->
       <div class="page" id="page-consigli">
-        <div class="consigli-layout">
-          <div style="overflow:hidden;display:flex;flex-direction:column">
-            <div id="consigliFilters"></div>
-            <div id="consigliList" style="flex:1;overflow-y:auto;margin-top:4px"></div>
-          </div>
-          <div id="consigliRight" style="overflow-y:auto">
-            <div class="piano-empty"><div class="piano-empty-icon">&#x1F3EB;</div><div>Seleziona una classe</div></div>
-          </div>
-        </div>
+        <div id="consigliFilters" style="margin-bottom:14px"></div>
+        <div class="results-meta" id="consigliMeta"></div>
+        <div class="consigli-grid" id="consigliGrid"></div>
       </div>
 
       <!-- DASHBOARD -->
@@ -1985,7 +1974,6 @@ function exportPianiCSV(){
 // ============================================================
 // CONSIGLI DI CLASSE
 // ============================================================
-let selectedConsiglioClasse = null;
 let consigliPlessoFilter = '';
 let consigliAnnoFilter = '';
 let consigliSpecFilter = '';
@@ -2018,30 +2006,39 @@ function getEntrySpec(entry) {
   return getSpecializzazione(entry.pianoKey);
 }
 
+function setConsigliPlesso(p){consigliPlessoFilter=consigliPlessoFilter===p?'':p;consigliSpecFilter='';renderConsigli();}
+function setConsigliAnno(a){consigliAnnoFilter=consigliAnnoFilter===a?'':a;renderConsigli();}
+function setConsigliSpec(s){consigliSpecFilter=consigliSpecFilter===s?'':s;renderConsigli();}
+function resetConsigliFilters(){consigliPlessoFilter='';consigliAnnoFilter='';consigliSpecFilter='';renderConsigli();}
+
 function renderConsigli() {
+  // build spec list for filter (scoped to current plesso filter)
   const specSet = new Set();
   classiDB.forEach(e => {
     if (consigliPlessoFilter && getPlesso(e.nome) !== consigliPlessoFilter) return;
     const s = getEntrySpec(e); if (s) specSet.add(s);
   });
   const specList = [...specSet].sort();
+
   const filtersEl = document.getElementById('consigliFilters');
   filtersEl.innerHTML =
-    '<div style="font-size:.71rem;color:var(--muted);margin-bottom:3px;font-weight:600;letter-spacing:.04em;text-transform:uppercase">Plesso</div>'+
-    '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">'+
+    '<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px">'+
+    '<div><div style="font-size:.7rem;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px">Plesso</div>'+
+    '<div style="display:flex;gap:5px;flex-wrap:wrap">'+
     ['IPIA','ITI','ITA','ITG'].map(p=>`<div class="consigli-pill${consigliPlessoFilter===p?' active':''}" onclick="setConsigliPlesso('${p}')">${p}</div>`).join('')+
-    '</div>'+
-    '<div style="font-size:.71rem;color:var(--muted);margin-bottom:3px;font-weight:600;letter-spacing:.04em;text-transform:uppercase">Anno</div>'+
-    '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">'+
+    '</div></div>'+
+    '<div><div style="font-size:.7rem;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px">Anno</div>'+
+    '<div style="display:flex;gap:5px;flex-wrap:wrap">'+
     ['1','2','3','4','5'].map(a=>`<div class="consigli-pill${consigliAnnoFilter===a?' active':''}" onclick="setConsigliAnno('${a}')">${a}°</div>`).join('')+
-    '</div>'+
+    '</div></div>'+
     (specList.length ?
-      '<div style="font-size:.71rem;color:var(--muted);margin-bottom:3px;font-weight:600;letter-spacing:.04em;text-transform:uppercase">Specializzazione</div>'+
-      '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">'+
-      specList.map(s=>`<div class="consigli-pill${consigliSpecFilter===s?' active':''}" onclick="setConsigliSpec('${s.replace(/'/g,"\\'")}',this)">${s}</div>`).join('')+
-      '</div>' : '')+
+      '<div><div style="font-size:.7rem;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px">Specializzazione</div>'+
+      '<div style="display:flex;gap:5px;flex-wrap:wrap">'+
+      specList.map(s=>`<div class="consigli-pill${consigliSpecFilter===s?' active':''}" onclick="setConsigliSpec('${s.replace(/'/g,"\\'")}')">${s}</div>`).join('')+
+      '</div></div>' : '')+
     ((consigliPlessoFilter||consigliAnnoFilter||consigliSpecFilter)?
-      '<span style="font-size:.74rem;color:var(--muted);cursor:pointer" onclick="resetConsigliFilters()">✕ reset filtri</span>':'');
+      '<div style="display:flex;align-items:flex-end"><button class="btn btn-ghost" onclick="resetConsigliFilters()">✕ Reset</button></div>':'')+
+    '</div>';
 
   let entries = classiDB.filter(e => {
     if (consigliPlessoFilter && getPlesso(e.nome) !== consigliPlessoFilter) return false;
@@ -2050,86 +2047,55 @@ function renderConsigli() {
     return true;
   }).sort((a,b)=>a.nome.localeCompare(b.nome,'it'));
 
-  const listEl = document.getElementById('consigliList');
+  const metaEl = document.getElementById('consigliMeta');
+  metaEl.textContent = entries.length + ' classi';
+
+  const gridEl = document.getElementById('consigliGrid');
   if (!entries.length) {
-    listEl.innerHTML='<div class="empty-state"><div class="empty-state-icon">&#x1F3EB;</div><div>Nessuna classe trovata</div></div>';return;
+    gridEl.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-state-icon">&#x1F3EB;</div><div>Nessuna classe trovata</div></div>';return;
   }
-  listEl.innerHTML = entries.map(e => {
+
+  gridEl.innerHTML = entries.map(e => {
     const spec = getEntrySpec(e);
     const anno = getAnno(e.nome);
     const classiNomi = e.articolata ? [e.nome,...(e.sottogruppi||[]).map(sg=>sg.nome)] : [e.nome];
-    const teachers = new Set();
-    db.forEach(r => { if(classiNomi.includes(r.classe)){if(r.docente_a)teachers.add(r.docente_a);if(r.docente_b)teachers.add(r.docente_b);} });
-    const nDoc = teachers.size;
-    const isSel = selectedConsiglioClasse && selectedConsiglioClasse.nome===e.nome;
-    const nm = e.nome.replace(/'/g,"\\'");
-    return `<div class="consigli-class-item${isSel?' selected':''}" onclick="selectConsiglioClasse('${nm}')">
-      <div class="consigli-class-name">${e.nome}${e.articolata?' <span style="font-size:.63rem;color:var(--accent);background:rgba(79,142,247,.15);border-radius:3px;padding:1px 4px">ART</span>':''}</div>
-      <div class="consigli-class-meta">
-        ${anno?`<span>${anno}°</span>`:''}
-        ${spec?`<span style="color:var(--accent)">${spec}</span>`:''}
-        <span>${nDoc} doc.</span>
+    const righe = db.filter(r=>classiNomi.includes(r.classe))
+      .sort((a,b)=>(a.disciplina||'').localeCompare(b.disciplina||'','it'));
+    const nDocenti = new Set(righe.flatMap(r=>[r.docente_a,r.docente_b]).filter(Boolean)).size;
+
+    const righeHTML = righe.map(r => {
+      // prefix per articolate: mostra la sottoclasse se diversa dal nome principale
+      const pfx = e.articolata && r.classe !== e.nome
+        ? `<span style="font-size:.65rem;color:var(--muted);margin-right:3px">[${r.classe.replace(e.nome,'').trim()}]</span>`
+        : '';
+      const mancante = !r.docente_a;
+      let html = `<tr style="border-bottom:1px solid rgba(42,48,69,.5)">
+        <td style="padding:3px 8px 3px 0;font-size:.78rem;color:var(--text)">${pfx}${r.disciplina}</td>
+        <td style="padding:3px 8px 3px 0;font-size:.78rem;color:${mancante?'var(--red)':'var(--muted)'}">${mancante?'<em style="opacity:.6">non assegnato</em>':r.docente_a}</td>
+        <td style="padding:3px 0;font-size:.76rem;color:var(--accent);white-space:nowrap;text-align:right">${r.ore_a||''}h</td>
+      </tr>`;
+      if(r.docente_b && r.ore_b){
+        html += `<tr style="border-bottom:1px solid rgba(42,48,69,.5)">
+          <td style="padding:2px 8px 2px 10px;font-size:.73rem;color:var(--muted)">↳ ${r.cdc_b||''}</td>
+          <td style="padding:2px 8px 2px 0;font-size:.73rem;color:var(--muted)">${r.docente_b}</td>
+          <td style="padding:2px 0;font-size:.73rem;color:#a78bfa;white-space:nowrap;text-align:right">${r.ore_b}h</td>
+        </tr>`;
+      }
+      return html;
+    }).join('');
+
+    return `<div class="docente-card" style="cursor:default;display:flex;flex-direction:column">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+        <div class="docente-name" style="font-size:.95rem">${e.nome}${e.articolata?' <span style="font-size:.62rem;color:var(--accent);background:rgba(79,142,247,.15);border-radius:3px;padding:1px 4px">ART</span>':''}</div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">
+          ${anno?`<span class="badge badge-green">${anno}°</span>`:''}
+          ${spec?`<span class="badge badge-cdc">${spec}</span>`:''}
+        </div>
       </div>
+      <div style="font-size:.72rem;color:var(--muted);margin-bottom:8px">${nDocenti} docenti &bull; ${righe.length} righe</div>
+      <table style="width:100%;border-collapse:collapse">${righeHTML}</table>
     </div>`;
   }).join('');
-}
-
-function setConsigliPlesso(p){consigliPlessoFilter=consigliPlessoFilter===p?'':p;consigliSpecFilter='';renderConsigli();}
-function setConsigliAnno(a){consigliAnnoFilter=consigliAnnoFilter===a?'':a;renderConsigli();}
-function setConsigliSpec(s){consigliSpecFilter=consigliSpecFilter===s?'':s;renderConsigli();}
-function resetConsigliFilters(){consigliPlessoFilter='';consigliAnnoFilter='';consigliSpecFilter='';renderConsigli();}
-
-function selectConsiglioClasse(nome) {
-  const entry = classiDB.find(e=>e.nome===nome);
-  if (!entry) return;
-  selectedConsiglioClasse = entry;
-  const classiNomi = entry.articolata ? [entry.nome,...(entry.sottogruppi||[]).map(sg=>sg.nome)] : [entry.nome];
-  const righe = db.filter(r=>classiNomi.includes(r.classe));
-  const tmap = {};
-  righe.forEach(r=>{
-    [[r.docente_a,r.cdc_a,r.ore_a],[r.docente_b,r.cdc_b,r.ore_b]].forEach(([d,c,o],idx)=>{
-      if(!d)return;
-      if(!tmap[d])tmap[d]={name:d,cdcs:new Set(),ore:0,righe:[]};
-      if(c)tmap[d].cdcs.add(c);
-      tmap[d].ore+=parseInt(o)||0;
-      tmap[d].righe.push({classe:r.classe,disciplina:r.disciplina,ore:parseInt(o)||0});
-    });
-  });
-  const docenti=Object.values(tmap).sort((a,b)=>a.name.localeCompare(b.name,'it'));
-  const spec=getEntrySpec(entry);
-  const anno=getAnno(entry.nome);
-  const rightEl=document.getElementById('consigliRight');
-  // re-render list highlights
-  document.querySelectorAll('#consigliList .consigli-class-item').forEach(el=>{el.classList.toggle('selected',el.textContent.trim().startsWith(nome.split(' ')[0]+'')&&el.onclick&&el.getAttribute('onclick')&&el.getAttribute('onclick').includes(nome.replace(/'/g,"\\'")));});
-  renderConsigli();
-  if(!docenti.length){
-    rightEl.innerHTML=`<div class="piano-empty"><div class="piano-empty-icon">&#x1F4C4;</div><div>Nessun docente assegnato a ${nome}</div></div>`;return;
-  }
-  rightEl.innerHTML=
-    `<div style="margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
-      <div>
-        <div style="font-family:var(--serif);font-size:1.3rem">${nome}</div>
-        <div style="font-size:.78rem;color:var(--muted);margin-top:3px;display:flex;gap:12px;flex-wrap:wrap">
-          ${anno?`<span>${anno}° anno</span>`:''}
-          ${spec?`<span style="color:var(--accent)">${spec}</span>`:''}
-          ${entry.articolata?`<span style="color:var(--accent)">Articolata</span>`:''}
-          <span>${docenti.length} docenti nel consiglio</span>
-        </div>
-      </div>
-    </div>
-    <div class="docenti-grid">${docenti.map(d=>{
-      const righeHTML=d.righe.sort((a,b)=>a.classe.localeCompare(b.classe,'it')).map(r=>
-        `<tr><td style="padding:2px 6px 2px 0;font-size:.72rem;color:var(--text)">${r.classe}</td><td style="padding:2px 6px 2px 0;font-size:.72rem;color:var(--muted)">${r.disciplina}</td><td style="padding:2px 0;font-size:.72rem;color:var(--accent);text-align:right">${r.ore}h</td></tr>`
-      ).join('');
-      return `<div class="docente-card" style="cursor:default">
-        <div class="docente-name" style="margin-bottom:6px">${d.name}</div>
-        <div class="docente-tags" style="margin-bottom:6px">
-          ${[...d.cdcs].map(c=>`<span class="badge badge-cdc">${c}</span>`).join('')}
-          <span style="font-size:.75rem;color:var(--muted)">${d.ore}h in classe</span>
-        </div>
-        <table style="width:100%;border-collapse:collapse">${righeHTML}</table>
-      </div>`;
-    }).join('')}</div>`;
 }
 
 // ============================================================
