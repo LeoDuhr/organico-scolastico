@@ -236,6 +236,9 @@ thead th.sorted{color:var(--accent)}
       <div class="nav-item" onclick="showPage('export',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Esporta
       </div>
+      <div class="nav-item" onclick="showPage('manuale',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>Manuale
+      </div>
       <div class="nav-item" onclick="showPage('impostazioni',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Impostazioni
       </div>
@@ -438,6 +441,154 @@ thead th.sorted{color:var(--accent)}
             <div class="ore-card" style="padding:18px;border:1px solid var(--accent)"><div style="font-weight:600;margin-bottom:6px">📥 Importa CSV assegnazioni</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Carica un CSV con header: Piano, Classe, Disciplina, Codice, CDC A, Ore, CDC B, Docente A, Docente B, Potenziamento</div><input type="file" id="importFile" accept=".csv" style="display:none" onchange="importCSV(this)"><button class="btn btn-primary" onclick="document.getElementById('importFile').click()">Carica CSV</button></div>
             <div class="ore-card" style="padding:18px;border:1px solid var(--green)"><div style="font-weight:600;margin-bottom:6px">💾 Backup completo JSON</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Esporta tutto lo stato (assegnazioni, dipartimenti, classi) in un file JSON.</div><button class="btn btn-primary" onclick="exportJSON()">Scarica JSON</button></div>
             <div class="ore-card" style="padding:18px;border:1px solid var(--yellow)"><div style="font-weight:600;margin-bottom:6px">📂 Ripristina da JSON</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Carica un backup JSON per ripristinare tutto lo stato.</div><input type="file" id="importJSONFile" accept=".json" style="display:none" onchange="importJSON(this)"><button class="btn btn-ghost" onclick="document.getElementById('importJSONFile').click()">Carica JSON</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="page-manuale">
+        <div style="max-width:720px;font-size:.88rem;line-height:1.7">
+          <div class="section-title" style="margin-bottom:4px">Manuale di Utilizzo</div>
+          <div style="font-size:.78rem;color:var(--muted);margin-bottom:28px">Guida operativa — segui i passi in ordine cronologico per la prima configurazione.</div>
+
+          <div style="margin-bottom:28px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <span style="background:var(--accent);color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0">1</span>
+              <div style="font-family:var(--serif);font-size:1.1rem">Configurazione iniziale</div>
+            </div>
+            <div style="padding-left:36px">
+              <p>Vai in <strong>Impostazioni</strong> e configura i parametri prima di qualsiasi importazione.</p>
+              <ul style="margin:8px 0 0 18px;display:flex;flex-direction:column;gap:4px">
+                <li><strong>Prefissi plesso</strong> — aggiungi i prefissi delle sedi scolastiche (es. IPIA, ITI, ITA, ITG). Usati per i filtri in Consigli e Classi.</li>
+                <li><strong>Ore cattedra default</strong> — imposta le ore settimanali di cattedra piena standard (default: 18h). Modificabile anche per singolo docente.</li>
+                <li><strong>Dipartimenti</strong> — verifica o modifica la lista con i relativi CDC. Le checkbox mostrano le CDC rilevate dai piani caricati.</li>
+                <li><strong>Etichette specializzazioni</strong> — personalizza i nomi delle specializzazioni usati nei filtri Consigli (es. ELETTRO → "Elettrotecnica").</li>
+              </ul>
+            </div>
+          </div>
+
+          <div style="margin-bottom:28px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <span style="background:var(--accent);color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0">2</span>
+              <div style="font-family:var(--serif);font-size:1.1rem">Importazione dati</div>
+            </div>
+            <div style="padding-left:36px">
+              <p>Vai in <strong>Esporta</strong> e scegli il metodo di caricamento.</p>
+              <ul style="margin:8px 0 0 18px;display:flex;flex-direction:column;gap:4px">
+                <li><strong>Da CSV (Google Sheets)</strong> — usa "Importa CSV assegnazioni". Colonne: <code style="background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:.82em">Piano, Classe, Disciplina, Codice, CDC A, Ore, CDC B, Docente A, Docente B, Potenziamento</code>.</li>
+                <li><strong>Da backup JSON</strong> — usa "Ripristina da JSON" per caricare uno stato salvato. Sovrascrive tutto.</li>
+                <li><strong>Importa docenti da CDC</strong> — CSV con header <code style="background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:.82em">Docente,CDC</code>. Assegna docenti alle righe vuote per CDC.</li>
+              </ul>
+              <div style="margin-top:10px;padding:10px 14px;background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.25);border-radius:8px;font-size:.82rem">
+                <strong style="color:var(--yellow)">⚠ Nota — Italiano e Storia:</strong> se il piano contiene "Italiano e Storia" come disciplina unica, il sistema la divide automaticamente in 4h Italiano + 2h Storia all'importazione. Comportamento specifico al piano in uso, non configurabile. Per altri piani non si presenta.
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-bottom:28px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <span style="background:var(--accent);color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0">3</span>
+              <div style="font-family:var(--serif);font-size:1.1rem">Verifica Classi</div>
+            </div>
+            <div style="padding-left:36px">
+              <p>Vai in <strong>Classi</strong> per controllare che tutte le classi siano presenti e correttamente configurate.</p>
+              <ul style="margin:8px 0 0 18px;display:flex;flex-direction:column;gap:4px">
+                <li>Aggiungi classi mancanti con il form (plesso + nome libero).</li>
+                <li>Le <strong>classi articolate</strong> (badge ARTICOLATA) hanno piano comune + piani specifici per sottogruppi — espanse in due card nei Consigli.</li>
+                <li>Il pulsante <strong>👥</strong> su ogni classe apre direttamente il consiglio di classe.</li>
+                <li>Usa <strong>"Genera assegnazioni da classiDB"</strong> per creare automaticamente le righe dai piani collegati.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div style="margin-bottom:28px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <span style="background:var(--accent);color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0">4</span>
+              <div style="font-family:var(--serif);font-size:1.1rem">Verifica Piani di Studio</div>
+            </div>
+            <div style="padding-left:36px">
+              <p>Vai in <strong>Piani di Studio</strong> per controllare materie e ore per ogni piano.</p>
+              <ul style="margin:8px 0 0 18px;display:flex;flex-direction:column;gap:4px">
+                <li>Clicca un piano nella lista a sinistra per visualizzare e modificare le materie.</li>
+                <li>Modifica ore, CDC, aggiungi o rimuovi materie direttamente nella tabella.</li>
+                <li>Aggiungi classi a un piano esistente per generarne le assegnazioni.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div style="margin-bottom:28px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <span style="background:var(--accent);color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0">5</span>
+              <div style="font-family:var(--serif);font-size:1.1rem">Assegnazione Docenti</div>
+            </div>
+            <div style="padding-left:36px">
+              <p>Due modalità equivalenti.</p>
+              <ul style="margin:8px 0 0 18px;display:flex;flex-direction:column;gap:4px">
+                <li><strong>Via Assegnazioni</strong> — menu a tendina nelle righe della tabella, filtrato per CDC.</li>
+                <li><strong>Via Consigli di Classe</strong> — clicca su una classe per vedere tutte le materie, poi assegna docente per materia.</li>
+              </ul>
+              <div style="margin-top:10px;padding:10px 14px;background:var(--surface2);border-radius:8px;font-size:.82rem">
+                <strong>Legenda ore:</strong>
+                <span style="color:var(--muted)">⚡</span> vicino ·
+                <span style="color:var(--green)">✓</span> completo ·
+                <span style="color:var(--orange)">⚠</span> oltre cattedra (≤24h) ·
+                <span style="color:var(--red)">⛔</span> oltre 24h
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-bottom:28px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <span style="background:var(--accent);color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0">6</span>
+              <div style="font-family:var(--serif);font-size:1.1rem">Potenziamento e Ore Eccedenti</div>
+            </div>
+            <div style="padding-left:36px">
+              <p>Vai in <strong>Potenziamento</strong> per ore fuori piano standard.</p>
+              <ul style="margin:8px 0 0 18px;display:flex;flex-direction:column;gap:4px">
+                <li>Seleziona tipo, CDC, ore e disciplina (Supplenze / Staff / Alternativa IRC).</li>
+              </ul>
+              <div style="margin-top:10px;padding:10px 14px;background:rgba(77,158,255,.06);border:1px solid rgba(77,158,255,.2);border-radius:8px;font-size:.82rem">
+                <strong>Alternativa IRC — logica a 2 fasi:</strong><br>
+                <strong>Fase 1</strong> (qualche docente a cattedra piena ancora incompleto): solo docenti da CDC con ore pot/ecc nel db.<br>
+                <strong>Fase 2</strong> (tutti i docenti a cattedra piena completati): tutti i docenti, max 24h assolute.
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-bottom:28px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <span style="background:var(--accent);color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0">7</span>
+              <div style="font-family:var(--serif);font-size:1.1rem">Verifica stato Docenti</div>
+            </div>
+            <div style="padding-left:36px">
+              <p>Vai in <strong>Docenti</strong> per il quadro completo.</p>
+              <ul style="margin:8px 0 0 18px;display:flex;flex-direction:column;gap:4px">
+                <li>Tab <strong>Incompleta / Completa / Eccede</strong> per filtrare rapidamente.</li>
+                <li>⛔ nel contatore Eccede = qualcuno supera 24h.</li>
+              </ul>
+              <div style="margin-top:10px;padding:10px 14px;background:rgba(61,214,140,.05);border:1px solid rgba(61,214,140,.18);border-radius:8px;font-size:.82rem">
+                <strong>Normalizzazione eccedenti:</strong> clicca ✏ sulla card e imposta la cattedra individuale (es. 21h concordate). Cambia solo la base di calcolo visiva — assegnazioni invariate.
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-bottom:28px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <span style="background:var(--accent);color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0">8</span>
+              <div style="font-family:var(--serif);font-size:1.1rem">Backup e Esportazione</div>
+            </div>
+            <div style="padding-left:36px">
+              <p>Vai in <strong>Esporta</strong> per salvare o condividere.</p>
+              <ul style="margin:8px 0 0 18px;display:flex;flex-direction:column;gap:4px">
+                <li><strong>Backup JSON</strong> — salva tutto lo stato. Consigliato prima di modifiche importanti.</li>
+                <li><strong>CSV assegnazioni</strong> — tutte le righe o solo quelle filtrate.</li>
+                <li><strong>CSV piani / riepilogo docenti</strong> — per reportistica esterna.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div style="margin-top:8px;padding-top:20px;border-top:1px solid var(--border)">
+            <div style="font-family:var(--serif);font-size:1rem;margin-bottom:8px">Dove sono salvati i dati</div>
+            <p style="color:var(--muted);font-size:.83rem">Tutti i dati sono nel <strong style="color:var(--text)">localStorage del browser</strong>. Nessun backend. Cambiare browser, usare la navigazione privata o cancellare i dati del browser comporta la perdita dei dati. Eseguire backup JSON regolarmente.</p>
           </div>
         </div>
       </div>
@@ -993,7 +1144,7 @@ function showPage(name, el) {
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   if(el) el.classList.add('active');
-  const titles={assegnazioni:'Assegnazioni',piani:'Piani di Studio',docenti:'Docenti',classi:'Classi',dashboard:'Dashboard',export:'Esporta',dipartimenti:'Dipartimenti',potenziamento:'Potenziamento / Eccedente',consigli:'Consigli di Classe',impostazioni:'Impostazioni'};
+  const titles={assegnazioni:'Assegnazioni',piani:'Piani di Studio',docenti:'Docenti',classi:'Classi',dashboard:'Dashboard',export:'Esporta',dipartimenti:'Dipartimenti',potenziamento:'Potenziamento / Eccedente',consigli:'Consigli di Classe',manuale:'Manuale di Utilizzo',impostazioni:'Impostazioni'};
   document.getElementById('pageTitle').textContent=titles[name]||name;
   document.getElementById('addBtn').style.display=(name==='assegnazioni'&&currentRole!=='viewer')?'flex':'none';
   document.getElementById('addPianoBtn').style.display=(name==='piani'&&currentRole!=='viewer')?'flex':'none';
