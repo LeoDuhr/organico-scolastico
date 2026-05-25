@@ -174,6 +174,7 @@ tbody td{padding:9px 14px;vertical-align:middle}
 .cattedra-alert{animation:blink 1s step-start infinite;color:var(--red);font-weight:700;font-size:.85rem}
 .docente-card.incomplete{border-color:rgba(248,113,113,.5);background:rgba(248,113,113,.05)}
 .docente-card.overcomplete{border-color:rgba(249,115,22,.5);background:rgba(249,115,22,.04)}
+.docente-card.overmax{border-color:rgba(248,113,113,.7);background:rgba(248,113,113,.09)}
 .dip-cdc-table thead th{background:var(--surface2);padding:9px 14px;text-align:left;font-weight:600;color:var(--muted);font-size:.73rem;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border)}
 .dip-cdc-table tbody tr{border-bottom:1px solid var(--border)}.dip-cdc-table tbody tr:last-child{border-bottom:none}
 .dip-cdc-table tbody tr:hover{background:rgba(255,255,255,.02)}.dip-cdc-table td{padding:9px 14px;vertical-align:middle}
@@ -735,13 +736,24 @@ function buildTeacherMaps(){
   });
   return{teachByCdc,orePerDoc};
 }
+function getCdcsWithPot(){
+  const POT=['Potenziamento','Ora Eccedente'];
+  const s=new Set();
+  db.forEach(r=>{if(POT.includes(r.classe)){const c=normCdc(r.cdc_a||'');if(c&&c!=='---')s.add(c);}});
+  return s;
+}
+function allFulltimeComplete(){
+  const {orePerDoc}=buildTeacherMaps();
+  const full=Object.keys(orePerDoc).filter(t=>getCattedra(t)>=cattedraDefault);
+  return full.length>0&&full.every(t=>(orePerDoc[t]||0)>=getCattedra(t));
+}
 function mkDocSel(id,field,cdc,cur,teachByCdc,orePerDoc,saveFn){
   const k=normCdc(cdc||'');
   const opts=[...(teachByCdc[k]||[])].sort();
   const m=!cur;
   return`<select style="background:var(--bg);border:1px solid ${m?'rgba(248,113,113,.4)':'var(--border)'};color:${m?'var(--red)':'var(--text)'};border-radius:5px;padding:3px 5px;font-size:.76rem;font-family:var(--sans);width:100%;min-width:130px" onchange="${saveFn}(${id},'${field}',this.value)">
     <option value=""${!cur?' selected':''}>—</option>
-    ${opts.map(t=>{const o=orePerDoc[t]||0;const p=getCattedra(t);const f=o>p?' ⚠':o===p?' ✓':o>=(p-2)?' ⚡':'';return`<option value="${t}"${t===cur?' selected':''}>${t} (${o}/${p}h)${f}</option>`;}).join('')}
+    ${opts.map(t=>{const o=orePerDoc[t]||0;const p=getCattedra(t);const f=o>24?' ⛔':o>p?' ⚠':o===p?' ✓':o>=(p-2)?' ⚡':'';return`<option value="${t}"${t===cur?' selected':''}>${t} (${o}/${p}h)${f}</option>`;}).join('')}
   </select>`;
 }
 
@@ -1338,11 +1350,12 @@ function renderDocenti(){
   const allD=Object.values(map);
   const nInc=allD.filter(d=>d.ore<getCattedra(d.name)).length;
   const nOk=allD.filter(d=>d.ore===getCattedra(d.name)).length;
-  const nEcc=allD.filter(d=>d.ore>getCattedra(d.name)).length;
+  const nEcc=allD.filter(d=>d.ore>getCattedra(d.name)&&d.ore<=24).length;
+  const nMax=allD.filter(d=>d.ore>24).length;
   const tabT=document.getElementById('tabTutti'); if(tabT)tabT.textContent=`Tutti (${allD.length})`;
   const tabI=document.getElementById('tabIncompleta'); if(tabI)tabI.textContent=`⚠ Incompleta (${nInc})`;
   const tabC=document.getElementById('tabCompleta'); if(tabC)tabC.textContent=`✓ Completa (${nOk})`;
-  const tabE=document.getElementById('tabEccede'); if(tabE)tabE.textContent=`⚠ Eccede (${nEcc})`;
+  const tabE=document.getElementById('tabEccede'); if(tabE)tabE.textContent=`⚠ Eccede (${nEcc})${nMax>0?' ⛔ >24h ('+nMax+')':''}`;
   // popola select dipartimento
   const dipSel=document.getElementById('filterDipartimento');
   const dipAttuale=dipSel.value;
@@ -1367,8 +1380,11 @@ function renderDocenti(){
     const nameEsc=d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
     const piena=getCattedra(d.name);
     const incomplete=d.ore<piena;
-    const overcomplete=d.ore>piena;
-    return`<div class="docente-card${incomplete?' incomplete':overcomplete?' overcomplete':''}" style="cursor:pointer" onclick="goToDipartimentoDocente('${nameEsc}','${d.dipartimento}')">
+    const overmax=d.ore>24;
+    const overcomplete=d.ore>piena&&d.ore<=24;
+    const oreColor=incomplete?'var(--red)':overmax?'var(--red)':overcomplete?'var(--orange)':'var(--green)';
+    const oreIcon=incomplete?'⚠ ':overmax?'⛔ ':overcomplete?'⚠ ':'';
+    return`<div class="docente-card${incomplete?' incomplete':overmax?' overmax':overcomplete?' overcomplete':''}" style="cursor:pointer" onclick="goToDipartimentoDocente('${nameEsc}','${d.dipartimento}')">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
       <div class="docente-name">${d.name}</div>
       <div style="display:flex;align-items:center;gap:4px">
@@ -1376,7 +1392,7 @@ function renderDocenti(){
       </div>
     </div>
     <div class="docente-tags" style="margin-bottom:6px">${[...d.cdcs].map(c=>`<span class="badge badge-cdc">${c}</span>`).join('')}
-      <span style="font-size:.75rem;color:${incomplete?'var(--red)':overcomplete?'var(--orange)':'var(--green)'};font-weight:600">${(incomplete||overcomplete)?'⚠ ':''} ${d.ore}/${piena}h</span>
+      <span style="font-size:.75rem;color:${oreColor};font-weight:600">${oreIcon}${d.ore}/${piena}h</span>
       <span style="font-size:.68rem;color:var(--muted);cursor:pointer;border:1px solid var(--border);border-radius:3px;padding:0 5px" onclick="setCattedraDocente('${nameEsc}')" title="Modifica cattedra piena">✏</span>
     </div>
     <table style="width:100%;border-collapse:collapse">${righeHTML}</table>
@@ -1548,14 +1564,16 @@ function renderDipRight(dip){
     const nameEsc=d.name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
     const piena=getCattedra(d.name);
     const incomplete=d.ore<piena;
-    const overcomplete=d.ore>piena;
+    const overmax=d.ore>24;
+    const overcomplete=d.ore>piena&&d.ore<=24;
     const oreLabel=`${d.ore}h/${piena}h`;
-    const oreColor=incomplete?'var(--red)':overcomplete?'var(--orange)':'var(--green)';
-    return`<div class="docente-card${incomplete?' incomplete':overcomplete?' overcomplete':''}" style="padding:10px;cursor:default">
+    const oreColor=incomplete?'var(--red)':overmax?'var(--red)':overcomplete?'var(--orange)':'var(--green)';
+    const oreIcon=incomplete?'⚠ ':overmax?'⛔ ':overcomplete?'⚠ ':'';
+    return`<div class="docente-card${incomplete?' incomplete':overmax?' overmax':overcomplete?' overcomplete':''}" style="padding:10px;cursor:default">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;gap:4px">
         <div style="font-weight:600;font-size:.78rem;cursor:pointer;line-height:1.2" onclick="filterByDocente('${nameEsc}')">${d.name}</div>
         <span style="display:flex;align-items:center;gap:4px">
-          <span style="font-size:.68rem;color:${oreColor};font-weight:600;white-space:nowrap">${(incomplete||overcomplete)?'⚠ ':''} ${oreLabel}</span>
+          <span style="font-size:.68rem;color:${oreColor};font-weight:600;white-space:nowrap">${oreIcon}${oreLabel}</span>
           <span style="font-size:.65rem;color:var(--muted);cursor:pointer;border:1px solid var(--border);border-radius:3px;padding:0 4px" onclick="setCattedraDocente('${nameEsc}')" title="Modifica ore cattedra piena">✏</span>
         </span>
       </div>
@@ -1684,7 +1702,7 @@ function renderPotenziamentoPage(){
           <div><label style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">N° ORE</label>
             <input type="number" id="potOre" min="1" max="20" value="2" style="${selStyle}"></div>
           <div><label style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">DISCIPLINA / USO</label>
-            <select id="potDisciplina" style="${selStyle}"><option value="Supplenze">Supplenze</option><option value="Staff">Staff</option><option value="Alternativa IRC">Alternativa IRC</option></select></div>
+            <select id="potDisciplina" onchange="updatePotDocenti()" style="${selStyle}"><option value="Supplenze">Supplenze</option><option value="Staff">Staff</option><option value="Alternativa IRC">Alternativa IRC</option></select></div>
           <div><label style="font-size:.72rem;color:var(--muted);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em">DOCENTE</label>
             <select id="potDocente" style="${selStyle}"><option value="">— nessuno —</option></select></div>
           <button class="btn btn-primary" style="width:100%;margin-top:4px" onclick="createPotRows()">Genera righe</button>
@@ -1744,21 +1762,31 @@ function renderPotenziamentoPage(){
 function updatePotDocenti(){
   const cdc=document.getElementById('potCdc');
   const sel=document.getElementById('potDocente');
+  const discEl=document.getElementById('potDisciplina');
   if(!cdc||!sel)return;
   const k=normCdc(cdc.value);
-  const teachByCdc={};
-  db.forEach(r=>{
-    [[r.cdc_a,r.docente_a],[r.cdc_b,r.docente_b]].forEach(([c,d])=>{
-      if(!c||!d)return;
-      const kk=normCdc(c);
-      if(!teachByCdc[kk])teachByCdc[kk]=new Set();
-      teachByCdc[kk].add(d);
-    });
-  });
-  const opts=[...(teachByCdc[k]||[])].sort();
-  const orePerDoc={};
-  db.forEach(r=>{if(r.docente_a)orePerDoc[r.docente_a]=(orePerDoc[r.docente_a]||0)+(parseInt(r.ore_a)||0);if(r.docente_b)orePerDoc[r.docente_b]=(orePerDoc[r.docente_b]||0)+(parseInt(r.ore_b)||0);});
-  sel.innerHTML='<option value="">— nessuno —</option>'+opts.map(t=>{const ore=orePerDoc[t]||0;const piena=getCattedra(t);const flag=ore>piena?' ⚠':ore===piena?' ✓':ore>=(piena-2)?' ⚡':'';return`<option value="${t}">${t} (${ore}/${piena}h)${flag}</option>`;}).join('');
+  const {teachByCdc,orePerDoc}=buildTeacherMaps();
+  const isAltIrc=discEl&&discEl.value==='Alternativa IRC';
+  let opts;
+  if(isAltIrc){
+    if(allFulltimeComplete()){
+      // phase 2: tutti i docenti noti
+      opts=[...new Set(Object.values(teachByCdc).flatMap(s=>[...s]))].sort();
+    } else {
+      // phase 1: solo docenti da CDC con pot/ecc
+      const potCdcs=getCdcsWithPot();
+      const eligible=new Set();
+      potCdcs.forEach(c=>(teachByCdc[c]||new Set()).forEach(t=>eligible.add(t)));
+      opts=[...eligible].sort();
+    }
+  } else {
+    opts=[...(teachByCdc[k]||[])].sort();
+  }
+  sel.innerHTML='<option value="">— nessuno —</option>'+opts.map(t=>{
+    const ore=orePerDoc[t]||0;const piena=getCattedra(t);
+    const flag=ore>24?' ⛔':ore>piena?' ⚠':ore===piena?' ✓':ore>=(piena-2)?' ⚡':'';
+    return`<option value="${t}">${t} (${ore}/${piena}h)${flag}</option>`;
+  }).join('');
 }
 function deletePotRecord(id){
   if(currentRole!=='admin')return;
