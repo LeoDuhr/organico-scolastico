@@ -225,6 +225,9 @@ tbody td{padding:9px 14px;vertical-align:middle}
       <div class="nav-item" onclick="showPage('export',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Esporta
       </div>
+      <div class="nav-item" onclick="showPage('impostazioni',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Impostazioni
+      </div>
     </nav>
     <div class="sidebar-footer">
       <div style="display:flex;align-items:center;margin-bottom:8px"><span class="role-dot"></span><span style="font-size:.75rem;color:var(--muted)" id="roleLabel">Admin</span></div>
@@ -424,9 +427,17 @@ tbody td{padding:9px 14px;vertical-align:middle}
             <div class="ore-card" style="padding:18px;border:1px solid var(--accent)"><div style="font-weight:600;margin-bottom:6px">📥 Importa CSV assegnazioni</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Carica un CSV con header: Piano, Classe, Disciplina, Codice, CDC A, Ore, CDC B, Docente A, Docente B, Potenziamento</div><input type="file" id="importFile" accept=".csv" style="display:none" onchange="importCSV(this)"><button class="btn btn-primary" onclick="document.getElementById('importFile').click()">Carica CSV</button></div>
             <div class="ore-card" style="padding:18px;border:1px solid var(--green)"><div style="font-weight:600;margin-bottom:6px">💾 Backup completo JSON</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Esporta tutto lo stato (assegnazioni, dipartimenti, classi) in un file JSON.</div><button class="btn btn-primary" onclick="exportJSON()">Scarica JSON</button></div>
             <div class="ore-card" style="padding:18px;border:1px solid var(--yellow)"><div style="font-weight:600;margin-bottom:6px">📂 Ripristina da JSON</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Carica un backup JSON per ripristinare tutto lo stato.</div><input type="file" id="importJSONFile" accept=".json" style="display:none" onchange="importJSON(this)"><button class="btn btn-ghost" onclick="document.getElementById('importJSONFile').click()">Carica JSON</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page" id="page-impostazioni">
+        <div style="max-width:560px">
+          <div class="section-title" style="margin-bottom:16px">Impostazioni</div>
+          <div style="display:flex;flex-direction:column;gap:14px">
             <div class="ore-card" style="padding:18px;border:1px solid var(--accent)">
               <div style="font-weight:600;margin-bottom:4px">🏷️ Etichette Specializzazioni</div>
-              <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Nomi visualizzati nei filtri Consigli di Classe. Rilevati automaticamente dai piani di studio. Il tasto ↺ ripristina il default.</div>
+              <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Nomi visualizzati nei filtri dei Consigli di Classe. Rilevati automaticamente dai piani di studio. Il tasto ↺ ripristina il valore di default.</div>
               <div id="specLabelsContainer"><span style="color:var(--muted);font-size:.85rem">Caricamento…</span></div>
             </div>
           </div>
@@ -769,7 +780,7 @@ function showPage(name, el) {
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   if(el) el.classList.add('active');
-  const titles={assegnazioni:'Assegnazioni',piani:'Piani di Studio',docenti:'Docenti',classi:'Classi',dashboard:'Dashboard',export:'Esporta',dipartimenti:'Dipartimenti',potenziamento:'Potenziamento / Eccedente',consigli:'Consigli di Classe'};
+  const titles={assegnazioni:'Assegnazioni',piani:'Piani di Studio',docenti:'Docenti',classi:'Classi',dashboard:'Dashboard',export:'Esporta',dipartimenti:'Dipartimenti',potenziamento:'Potenziamento / Eccedente',consigli:'Consigli di Classe',impostazioni:'Impostazioni'};
   document.getElementById('pageTitle').textContent=titles[name]||name;
   document.getElementById('addBtn').style.display=(name==='assegnazioni'&&currentRole!=='viewer')?'flex':'none';
   document.getElementById('addPianoBtn').style.display=(name==='piani'&&currentRole!=='viewer')?'flex':'none';
@@ -780,7 +791,7 @@ function showPage(name, el) {
   if(name==='dipartimenti') renderDipartimenti();
   if(name==='potenziamento') renderPotenziamentoPage();
   if(name==='consigli') renderConsigli();
-  if(name==='export') renderSpecLabels();
+  if(name==='impostazioni') renderSpecLabels();
 }
 
 // ============================================================
