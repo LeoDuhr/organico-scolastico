@@ -2081,31 +2081,33 @@ function setConsigliAnno(a){consigliAnnoFilter=consigliAnnoFilter===a?'':a;rende
 function setConsigliSpec(s){consigliSpecFilter=consigliSpecFilter===s?'':s;renderConsigli();}
 function resetConsigliFilters(){consigliPlessoFilter='';consigliAnnoFilter='';consigliSpecFilter='';renderConsigli();}
 
-// expand classiDB: articolate → 2 entries (one per sottogruppo, each shows comune+specifico rows)
+// expand classiDB: articolate → 2 entries; supplement with any class in db but not in classiDB
 function buildConsigliEntries() {
-  const result = [];
+  const POT_CLASSI = ['Potenziamento','Ora Eccedente'];
+  const classMap = {};
+  const artParents = new Set();
+
   classiDB.forEach(e => {
     if (e.articolata && e.sottogruppi && e.sottogruppi.length) {
+      artParents.add(e.nome);
       e.sottogruppi.forEach(sg => {
-        result.push({
-          displayNome: sg.nome,
-          filterNome: sg.nome,
-          spec: getSpecializzazione(sg.piano_specifico),
-          classiNomi: [e.nome, sg.nome], // comune rows + specifico rows
-          parentNome: e.nome
-        });
+        classMap[sg.nome] = {spec:getSpecializzazione(sg.piano_specifico), classiNomi:[e.nome,sg.nome], parentNome:e.nome};
       });
     } else {
-      result.push({
-        displayNome: e.nome,
-        filterNome: e.nome,
-        spec: getEntrySpec(e),
-        classiNomi: [e.nome],
-        parentNome: null
-      });
+      classMap[e.nome] = {spec:getEntrySpec(e), classiNomi:[e.nome], parentNome:null};
     }
   });
-  return result;
+
+  // add classes present in db but missing from classiDB (es. importate via CSV)
+  db.forEach(r => {
+    if (!r.classe || POT_CLASSI.includes(r.classe) || classMap[r.classe] || artParents.has(r.classe)) return;
+    classMap[r.classe] = {spec:getSpecializzazione(r.piano||''), classiNomi:[r.classe], parentNome:null};
+  });
+
+  return Object.entries(classMap).map(([nome,info]) => ({
+    displayNome: nome, filterNome: nome,
+    spec: info.spec, classiNomi: info.classiNomi, parentNome: info.parentNome||null
+  }));
 }
 
 let _consigliGridEntries = [];
