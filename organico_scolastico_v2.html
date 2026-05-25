@@ -441,11 +441,21 @@ tbody td{padding:9px 14px;vertical-align:middle}
               <div id="specLabelsContainer"><span style="color:var(--muted);font-size:.85rem">Caricamento…</span></div>
             </div>
             <div class="ore-card" style="padding:18px">
+              <div style="font-weight:600;margin-bottom:4px">🎓 Ore cattedra di default</div>
+              <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Ore settimanali di cattedra piena per tutti i docenti senza impostazione individuale. Modificabile anche per singolo docente dalla pagina Docenti.</div>
+              <div id="cattedraDefaultContainer"><span style="color:var(--muted);font-size:.85rem">Caricamento…</span></div>
+            </div>
+            <div class="ore-card" style="padding:18px">
+              <div style="font-weight:600;margin-bottom:4px">🏫 Prefissi plesso</div>
+              <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Prefissi usati per riconoscere il plesso dal nome classe (es. "ITI 3A" → plesso ITI). Usati nei filtri Consigli e Classi.</div>
+              <div id="plessiContainer"><span style="color:var(--muted);font-size:.85rem">Caricamento…</span></div>
+            </div>
+            <div class="ore-card" style="padding:18px">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
                 <div style="font-weight:600">🏛️ Dipartimenti</div>
                 <button class="btn btn-ghost" style="padding:2px 10px;font-size:.75rem;color:var(--muted)" onclick="resetDipartimentiDefault()">↺ Ripristina default</button>
               </div>
-              <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">CDC separati da virgola (es. A12, B12). Modifiche aggiornano subito filtri e pagina Dipartimenti.</div>
+              <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Modifiche aggiornano subito filtri e pagina Dipartimenti.</div>
               <div id="dipListContainer"><span style="color:var(--muted);font-size:.85rem">Caricamento…</span></div>
             </div>
           </div>
@@ -695,7 +705,9 @@ const SPEC_LABELS_DEFAULT = {
   'IPIA_ELETTRO':'Man. Elettrica',
   'IPIA_MECC':'Man. Meccanica',
 };
-function getCattedra(nome){return cattedraOverride[nome]||18;}
+let cattedraDefault=(function(){try{const s=localStorage.getItem('organico_cattedra_default');return s?parseInt(s):18;}catch(e){return 18;}})();
+function getCattedra(nome){return cattedraOverride[nome]||cattedraDefault;}
+function saveCattedraDefault(val){cattedraDefault=val;try{localStorage.setItem('organico_cattedra_default',String(val));}catch(e){}}
 function saveCattedraOverride(){try{localStorage.setItem('organico_cattedra',JSON.stringify(cattedraOverride));}catch(e){}}
 function setCattedraDocente(nome){
   const attuale=getCattedra(nome);
@@ -857,6 +869,59 @@ function addNewDip(){
   saveDipartimentiList(list);
   toast('Dipartimento aggiunto ✓','success');
 }
+function renderPlessiImpostazioni(){
+  const el=document.getElementById('plessiContainer');
+  if(!el)return;
+  const chipStyle='display:inline-flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:3px 10px;font-family:monospace;font-size:.85rem;font-weight:600';
+  el.innerHTML=`
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
+      ${plessiList.map((p,i)=>`<span style="${chipStyle}">${p}<button onclick="removePlesso(${i})" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:.9rem;padding:0;line-height:1">✕</button></span>`).join('')}
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input id="plessoNewInput" class="form-input" style="width:120px;height:32px;font-family:monospace;font-size:.85rem;text-transform:uppercase" placeholder="es. LS" onkeydown="if(event.key==='Enter')addPlesso()">
+      <button class="btn btn-ghost" style="font-size:.82rem" onclick="addPlesso()">+ Aggiungi</button>
+      <button class="btn btn-ghost" style="font-size:.78rem;color:var(--muted);margin-left:auto" onclick="resetPlessiDefault()">↺ Default</button>
+    </div>`;
+}
+function addPlesso(){
+  const val=(document.getElementById('plessoNewInput').value||'').trim().toUpperCase();
+  if(!val){toast('Inserisci prefisso','error');return;}
+  if(plessiList.includes(val)){toast('Già presente','error');return;}
+  savePlessiList([...plessiList,val]);
+  document.getElementById('plessoNewInput').value='';
+}
+function removePlesso(i){
+  const list=[...plessiList];list.splice(i,1);savePlessiList(list);
+}
+function resetPlessiDefault(){
+  localStorage.removeItem('organico_plessi');
+  plessiList=[...PLESSI_DEFAULT];
+  savePlessiList(plessiList);
+  toast('Plessi ripristinati','success');
+}
+function renderCattedraDefault(){
+  const el=document.getElementById('cattedraDefaultContainer');
+  if(!el)return;
+  el.innerHTML=`<div style="display:flex;align-items:center;gap:12px">
+    <input id="cattedraDefaultInput" type="number" min="1" max="40" class="form-input" style="width:80px;height:34px;font-size:1rem;font-weight:600;text-align:center" value="${cattedraDefault}">
+    <span style="font-size:.85rem;color:var(--muted)">ore/settimana</span>
+    <button class="btn btn-primary" style="font-size:.82rem" onclick="applyCattedraDefault()">Salva</button>
+    <button class="btn btn-ghost" style="font-size:.78rem;color:var(--muted)" onclick="resetCattedraDefault()">↺ 18h</button>
+  </div>`;
+}
+function applyCattedraDefault(){
+  const val=parseInt(document.getElementById('cattedraDefaultInput').value);
+  if(isNaN(val)||val<1||val>40){toast('Valore non valido (1-40)','error');return;}
+  saveCattedraDefault(val);
+  toast(`Cattedra default: ${val}h ✓`,'success');
+  renderDocenti();
+}
+function resetCattedraDefault(){
+  saveCattedraDefault(18);
+  renderCattedraDefault();
+  toast('Cattedra default: 18h','success');
+  renderDocenti();
+}
 let filtered = [...db];
 let currentPage = 1;
 const PAGE_SIZE = 25;
@@ -917,7 +982,7 @@ function showPage(name, el) {
   if(name==='dipartimenti') renderDipartimenti();
   if(name==='potenziamento') renderPotenziamentoPage();
   if(name==='consigli') renderConsigli();
-  if(name==='impostazioni'){renderSpecLabels();renderDipImpostazioni();}
+  if(name==='impostazioni'){renderSpecLabels();renderCattedraDefault();renderPlessiImpostazioni();renderDipImpostazioni();}
 }
 
 // ============================================================
@@ -2180,9 +2245,21 @@ let consigliPlessoFilter = '';
 let consigliAnnoFilter = '';
 let consigliSpecFilter = '';
 
-function getPlesso(nome) {
-  const m = nome.match(/^(IPIA|ITI|ITA|ITG)\b/);
-  return m ? m[1] : '';
+const PLESSI_DEFAULT=['IPIA','ITI','ITA','ITG'];
+let plessiList=(function(){try{const s=localStorage.getItem('organico_plessi');return s?JSON.parse(s):[...PLESSI_DEFAULT];}catch(e){return[...PLESSI_DEFAULT];}})();
+function savePlessiList(list){
+  plessiList=list;
+  try{localStorage.setItem('organico_plessi',JSON.stringify(list));}catch(e){}
+  renderPlessiImpostazioni();
+  const active=document.querySelector('.page.active');
+  if(active&&active.id==='page-consigli')renderConsigli();
+  if(active&&active.id==='page-classi')renderClassi();
+}
+function getPlesso(nome){
+  if(!plessiList.length)return'';
+  const pat=plessiList.map(p=>p.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|');
+  const m=(nome||'').match(new RegExp(`^(${pat})\\b`));
+  return m?m[1]:'';
 }
 function getAnno(nome) {
   const m = nome.match(/\s([1-5])(?!\d)/);
