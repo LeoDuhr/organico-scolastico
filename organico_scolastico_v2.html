@@ -480,6 +480,17 @@ tbody td{padding:9px 14px;vertical-align:middle}
 
 <div class="toast-container" id="toastContainer"></div>
 
+<!-- MODAL CONSIGLIO DI CLASSE -->
+<div class="modal-overlay" id="consigliModal" onclick="if(event.target===this)closeConsigliModal()">
+  <div class="modal modal-wide" style="max-width:900px;width:95vw">
+    <div class="modal-header">
+      <div class="modal-title" id="consigliModalTitle"></div>
+      <button class="modal-close" onclick="closeConsigliModal()">✕</button>
+    </div>
+    <div id="consigliModalBody" style="overflow-x:auto"></div>
+  </div>
+</div>
+
 <script>
 // ============================================================
 // DATA
@@ -2011,12 +2022,44 @@ function setConsigliAnno(a){consigliAnnoFilter=consigliAnnoFilter===a?'':a;rende
 function setConsigliSpec(s){consigliSpecFilter=consigliSpecFilter===s?'':s;renderConsigli();}
 function resetConsigliFilters(){consigliPlessoFilter='';consigliAnnoFilter='';consigliSpecFilter='';renderConsigli();}
 
-function renderConsigli() {
-  // build spec list for filter (scoped to current plesso filter)
-  const specSet = new Set();
+// expand classiDB: articolate → 2 entries (one per sottogruppo, each shows comune+specifico rows)
+function buildConsigliEntries() {
+  const result = [];
   classiDB.forEach(e => {
-    if (consigliPlessoFilter && getPlesso(e.nome) !== consigliPlessoFilter) return;
-    const s = getEntrySpec(e); if (s) specSet.add(s);
+    if (e.articolata && e.sottogruppi && e.sottogruppi.length) {
+      e.sottogruppi.forEach(sg => {
+        result.push({
+          displayNome: sg.nome,
+          filterNome: sg.nome,
+          spec: getSpecializzazione(sg.piano_specifico),
+          classiNomi: [e.nome, sg.nome], // comune rows + specifico rows
+          parentNome: e.nome
+        });
+      });
+    } else {
+      result.push({
+        displayNome: e.nome,
+        filterNome: e.nome,
+        spec: getEntrySpec(e),
+        classiNomi: [e.nome],
+        parentNome: null
+      });
+    }
+  });
+  return result;
+}
+
+let _consigliGridEntries = [];
+let currentConsigliModal = null;
+
+function renderConsigli() {
+  const allEntries = buildConsigliEntries();
+
+  // spec list scoped to plesso filter
+  const specSet = new Set();
+  allEntries.forEach(e => {
+    if (consigliPlessoFilter && getPlesso(e.filterNome) !== consigliPlessoFilter) return;
+    if (e.spec) specSet.add(e.spec);
   });
   const specList = [...specSet].sort();
 
@@ -2031,36 +2074,32 @@ function renderConsigli() {
     '<div style="display:flex;gap:5px;flex-wrap:wrap">'+
     ['1','2','3','4','5'].map(a=>`<div class="consigli-pill${consigliAnnoFilter===a?' active':''}" onclick="setConsigliAnno('${a}')">${a}°</div>`).join('')+
     '</div></div>'+
-    (specList.length ?
-      '<div><div style="font-size:.7rem;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px">Specializzazione</div>'+
-      '<div style="display:flex;gap:5px;flex-wrap:wrap">'+
-      specList.map(s=>`<div class="consigli-pill${consigliSpecFilter===s?' active':''}" onclick="setConsigliSpec('${s.replace(/'/g,"\\'")}')">${s}</div>`).join('')+
-      '</div></div>' : '')+
+    (specList.length?'<div><div style="font-size:.7rem;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px">Specializzazione</div>'+
+    '<div style="display:flex;gap:5px;flex-wrap:wrap">'+
+    specList.map(s=>`<div class="consigli-pill${consigliSpecFilter===s?' active':''}" onclick="setConsigliSpec('${s.replace(/'/g,"\\'")}')">${s}</div>`).join('')+
+    '</div></div>':'')+
     ((consigliPlessoFilter||consigliAnnoFilter||consigliSpecFilter)?
       '<div style="display:flex;align-items:flex-end"><button class="btn btn-ghost" onclick="resetConsigliFilters()">✕ Reset</button></div>':'')+
     '</div>';
 
-  let entries = classiDB.filter(e => {
-    if (consigliPlessoFilter && getPlesso(e.nome) !== consigliPlessoFilter) return false;
-    if (consigliAnnoFilter && getAnno(e.nome) !== consigliAnnoFilter) return false;
-    if (consigliSpecFilter && getEntrySpec(e) !== consigliSpecFilter) return false;
+  _consigliGridEntries = allEntries.filter(e => {
+    if (consigliPlessoFilter && getPlesso(e.filterNome) !== consigliPlessoFilter) return false;
+    if (consigliAnnoFilter && getAnno(e.filterNome) !== consigliAnnoFilter) return false;
+    if (consigliSpecFilter && e.spec !== consigliSpecFilter) return false;
     return true;
-  }).sort((a,b)=>a.nome.localeCompare(b.nome,'it'));
+  }).sort((a,b)=>a.displayNome.localeCompare(b.displayNome,'it'));
 
-  const metaEl = document.getElementById('consigliMeta');
-  metaEl.textContent = entries.length + ' classi';
+  document.getElementById('consigliMeta').textContent = _consigliGridEntries.length + ' classi';
 
   const gridEl = document.getElementById('consigliGrid');
-  if (!entries.length) {
+  if (!_consigliGridEntries.length) {
     gridEl.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-state-icon">&#x1F3EB;</div><div>Nessuna classe trovata</div></div>';return;
   }
 
-  gridEl.innerHTML = entries.map(e => {
-    const spec = getEntrySpec(e);
-    const anno = getAnno(e.nome);
-    const plesso = getPlesso(e.nome);
-    const classiNomi = e.articolata ? [e.nome,...(e.sottogruppi||[]).map(sg=>sg.nome)] : [e.nome];
-    const righe = db.filter(r=>classiNomi.includes(r.classe))
+  gridEl.innerHTML = _consigliGridEntries.map((e, idx) => {
+    const anno = getAnno(e.filterNome);
+    const plesso = getPlesso(e.filterNome);
+    const righe = db.filter(r=>e.classiNomi.includes(r.classe))
       .sort((a,b)=>(a.disciplina||'').localeCompare(b.disciplina||'','it'));
 
     const oreTotal = righe.reduce((s,r)=>s+(parseInt(r.ore_a)||0),0);
@@ -2070,47 +2109,132 @@ function renderConsigli() {
     const nDocenti = new Set(righe.flatMap(r=>[r.docente_a,r.docente_b]).filter(Boolean)).size;
 
     const righeHTML = righe.map(r => {
-      const pfx = e.articolata && r.classe !== e.nome
-        ? `<span style="font-size:.63rem;color:var(--muted);margin-right:3px">[${r.classe.replace(e.nome,'').trim()}]</span>` : '';
+      // show prefix tag when row belongs to a different class (articolate)
+      const pfx = e.classiNomi.length>1 && r.classe !== e.displayNome
+        ? `<span style="font-size:.62rem;color:var(--muted);background:var(--surface2);border-radius:3px;padding:0 3px;margin-right:3px">${r.classe.replace(e.parentNome||'','').trim()||r.classe}</span>` : '';
       const mancante = !r.docente_a;
       let html = `<tr style="border-bottom:1px solid rgba(42,48,69,.5)">
         <td style="padding:3px 8px 3px 0;font-size:.78rem;color:${mancante?'var(--red)':'var(--text)'}">${pfx}${r.disciplina}</td>
         <td style="padding:3px 8px 3px 0;font-size:.78rem;color:${mancante?'var(--red)':'var(--muted)'}">${mancante?'<em style="opacity:.5">—</em>':r.docente_a}</td>
         <td style="padding:3px 0;font-size:.76rem;color:${mancante?'var(--red)':'var(--accent)'};white-space:nowrap;text-align:right">${r.ore_a||''}h</td>
       </tr>`;
-      if(r.docente_b && r.ore_b){
-        html += `<tr style="border-bottom:1px solid rgba(42,48,69,.5)">
+      if(r.docente_b&&r.ore_b)html+=`<tr style="border-bottom:1px solid rgba(42,48,69,.5)">
           <td style="padding:2px 8px 2px 10px;font-size:.73rem;color:var(--muted)">↳ ${r.cdc_b||''}</td>
           <td style="padding:2px 8px 2px 0;font-size:.73rem;color:var(--muted)">${r.docente_b}</td>
           <td style="padding:2px 0;font-size:.73rem;color:#a78bfa;white-space:nowrap;text-align:right">${r.ore_b}h</td>
         </tr>`;
-      }
       return html;
     }).join('');
 
-    return `<div class="docente-card${oreMancanti>0?' incomplete':''}" style="cursor:default;display:flex;flex-direction:column">
+    return `<div class="docente-card${oreMancanti>0?' incomplete':''}" style="cursor:pointer;display:flex;flex-direction:column" onclick="openConsigliModal(${idx})">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
         <div>
-          <div class="docente-name" style="font-size:.95rem">${e.nome}${e.articolata?' <span style="font-size:.62rem;color:var(--accent);background:rgba(79,142,247,.15);border-radius:3px;padding:1px 4px">ART</span>':''}</div>
+          <div class="docente-name" style="font-size:.95rem">${e.displayNome}${e.parentNome?' <span style="font-size:.62rem;color:var(--muted);background:var(--surface2);border-radius:3px;padding:1px 4px">ART</span>':''}</div>
           <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px">
             ${plesso?`<span class="badge" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border)">${plesso}</span>`:''}
             ${anno?`<span class="badge badge-green">${anno}°</span>`:''}
-            ${spec?`<span class="badge badge-cdc">${spec}</span>`:''}
+            ${e.spec?`<span class="badge badge-cdc">${e.spec}</span>`:''}
           </div>
         </div>
         <div style="text-align:right;flex-shrink:0;margin-left:8px">
           ${nonGenerata
-            ? `<span style="font-size:.74rem;color:var(--muted);font-style:italic">da generare</span>`
-            : `<div style="font-size:.84rem;font-weight:700;color:${oreMancanti>0?'var(--red)':'var(--green)'}">
-                ${oreMancanti>0?'⚠ ':'✓ '}${oreAssegnate}/${oreTotal}h
-               </div>
-               <div style="font-size:.7rem;color:var(--muted)">${nDocenti} doc. &bull; ${oreMancanti>0?oreMancanti+'h mancanti':'completa'}</div>`
+            ?`<span style="font-size:.74rem;color:var(--muted);font-style:italic">da generare</span>`
+            :`<div style="font-size:.84rem;font-weight:700;color:${oreMancanti>0?'var(--red)':'var(--green)'}">${oreMancanti>0?'⚠ ':'✓ '}${oreAssegnate}/${oreTotal}h</div>
+              <div style="font-size:.7rem;color:var(--muted)">${nDocenti} doc. &bull; ${oreMancanti>0?oreMancanti+'h mancanti':'completa'}</div>`
           }
         </div>
       </div>
-      ${righe.length ? `<table style="width:100%;border-collapse:collapse">${righeHTML}</table>` : '<div style="font-size:.78rem;color:var(--muted);font-style:italic;padding:8px 0">Nessuna riga generata — vai su Classi per generare</div>'}
+      ${righe.length?`<table style="width:100%;border-collapse:collapse">${righeHTML}</table>`:'<div style="font-size:.78rem;color:var(--muted);font-style:italic;padding:8px 0">Nessuna riga — vai su Classi per generare</div>'}
+      <div style="margin-top:8px;font-size:.71rem;color:var(--muted);text-align:right">✏ clicca per modificare</div>
     </div>`;
   }).join('');
+}
+
+function openConsigliModal(idx) {
+  const e = _consigliGridEntries[idx];
+  if (!e) return;
+  currentConsigliModal = e;
+  document.getElementById('consigliModalTitle').textContent = e.displayNome;
+  renderConsigliModalBody(e);
+  document.getElementById('consigliModal').classList.add('open');
+}
+function closeConsigliModal() {
+  document.getElementById('consigliModal').classList.remove('open');
+  currentConsigliModal = null;
+  renderConsigli();
+}
+
+function renderConsigliModalBody(e) {
+  const canEdit = currentRole !== 'viewer';
+  // build teacher maps fresh from db
+  const teachByCdc = {}, orePerDoc = {};
+  db.forEach(r=>{
+    [[r.cdc_a,r.docente_a,r.ore_a],[r.cdc_b,r.docente_b,r.ore_b]].forEach(([c,d,o])=>{
+      if(!d)return;
+      const k=normCdc(c||'');
+      if(!teachByCdc[k])teachByCdc[k]=new Set();
+      teachByCdc[k].add(d);
+      orePerDoc[d]=(orePerDoc[d]||0)+(parseInt(o)||0);
+    });
+  });
+  const mkSel=(id,field,cdc,cur)=>{
+    const k=normCdc(cdc||'');
+    const opts=[...(teachByCdc[k]||[])].sort();
+    return`<select style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:4px 6px;font-size:.76rem;font-family:var(--sans);width:100%;min-width:130px" onchange="setConsigliDocente(${id},'${field}',this.value)">
+      <option value=""${!cur?' selected':''}>—</option>
+      ${opts.map(t=>{const o=orePerDoc[t]||0;const p=getCattedra(t);const f=o>=p?' ✓':o>=(p-2)?' ⚡':'';return`<option value="${t}"${t===cur?' selected':''}>${t} (${o}/${p}h)${f}</option>`;}).join('')}
+    </select>`;
+  };
+  const righe=db.filter(r=>e.classiNomi.includes(r.classe)).sort((a,b)=>(a.disciplina||'').localeCompare(b.disciplina||'','it'));
+  const oreTotal=righe.reduce((s,r)=>s+(parseInt(r.ore_a)||0),0);
+  const oreAss=righe.filter(r=>r.docente_a).reduce((s,r)=>s+(parseInt(r.ore_a)||0),0);
+  const thS='background:var(--surface2);padding:7px 10px;text-align:left;color:var(--muted);font-size:.7rem;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap';
+  const tdS='padding:6px 10px;border-bottom:1px solid var(--border);vertical-align:middle';
+  document.getElementById('consigliModalBody').innerHTML=
+    `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+       <div style="display:flex;gap:6px;flex-wrap:wrap">
+         ${getPlesso(e.filterNome)?`<span class="badge" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border)">${getPlesso(e.filterNome)}</span>`:''}
+         ${getAnno(e.filterNome)?`<span class="badge badge-green">${getAnno(e.filterNome)}°</span>`:''}
+         ${e.spec?`<span class="badge badge-cdc">${e.spec}</span>`:''}
+       </div>
+       <div style="font-size:.84rem;font-weight:700;color:${oreAss<oreTotal?'var(--red)':'var(--green)'}">
+         ${oreAss<oreTotal?'⚠ ':'✓ '}${oreAss}/${oreTotal}h assegnate
+       </div>
+     </div>
+    <table style="width:100%;border-collapse:collapse">
+    <thead><tr>
+      <th style="${thS}">Disciplina</th>
+      <th style="${thS}">Classe</th>
+      <th style="${thS}">CDC</th>
+      <th style="${thS}">Ore</th>
+      <th style="${thS}">Docente A</th>
+      <th style="${thS}">CDC B</th>
+      <th style="${thS}">Ore B</th>
+      <th style="${thS}">Docente B</th>
+    </tr></thead>
+    <tbody>${righe.map(r=>{
+      const m=!r.docente_a;
+      return`<tr style="${m?'background:rgba(248,113,113,.04)':''}">
+        <td style="${tdS};font-weight:600;color:${m?'var(--red)':'var(--text)'}">${r.disciplina}</td>
+        <td style="${tdS};font-size:.72rem;color:var(--muted)">${r.classe}</td>
+        <td style="${tdS}"><span class="badge badge-cdc" style="font-size:.65rem">${r.cdc_a||''}</span></td>
+        <td style="${tdS}"><span class="badge badge-ore" style="font-size:.65rem">${r.ore_a||''}h</span></td>
+        <td style="${tdS};min-width:170px">${canEdit?mkSel(r.id,'docente_a',r.cdc_a,r.docente_a):(r.docente_a||'<span style="color:var(--red)">—</span>')}</td>
+        <td style="${tdS}">${r.cdc_b?`<span class="badge badge-b" style="font-size:.65rem">${r.cdc_b}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
+        <td style="${tdS}">${r.ore_b?`<span class="badge badge-ore" style="font-size:.65rem">${r.ore_b}h</span>`:'—'}</td>
+        <td style="${tdS};min-width:170px">${r.cdc_b&&canEdit?mkSel(r.id,'docente_b',r.cdc_b,r.docente_b):(r.docente_b||'—')}</td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+function setConsigliDocente(id,field,val){
+  const idx=db.findIndex(x=>x.id===id);
+  if(idx===-1)return;
+  db[idx][field]=val;
+  try{localStorage.setItem('organico_db',JSON.stringify(db));}catch(e){}
+  applyFilters();
+  if(currentConsigliModal)renderConsigliModalBody(currentConsigliModal);
+  toast('Docente aggiornato ✓','success');
 }
 
 // ============================================================
