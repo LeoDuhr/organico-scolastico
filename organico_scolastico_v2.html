@@ -424,6 +424,11 @@ tbody td{padding:9px 14px;vertical-align:middle}
             <div class="ore-card" style="padding:18px;border:1px solid var(--accent)"><div style="font-weight:600;margin-bottom:6px">📥 Importa CSV assegnazioni</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Carica un CSV con header: Piano, Classe, Disciplina, Codice, CDC A, Ore, CDC B, Docente A, Docente B, Potenziamento</div><input type="file" id="importFile" accept=".csv" style="display:none" onchange="importCSV(this)"><button class="btn btn-primary" onclick="document.getElementById('importFile').click()">Carica CSV</button></div>
             <div class="ore-card" style="padding:18px;border:1px solid var(--green)"><div style="font-weight:600;margin-bottom:6px">💾 Backup completo JSON</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Esporta tutto lo stato (assegnazioni, dipartimenti, classi) in un file JSON.</div><button class="btn btn-primary" onclick="exportJSON()">Scarica JSON</button></div>
             <div class="ore-card" style="padding:18px;border:1px solid var(--yellow)"><div style="font-weight:600;margin-bottom:6px">📂 Ripristina da JSON</div><div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Carica un backup JSON per ripristinare tutto lo stato.</div><input type="file" id="importJSONFile" accept=".json" style="display:none" onchange="importJSON(this)"><button class="btn btn-ghost" onclick="document.getElementById('importJSONFile').click()">Carica JSON</button></div>
+            <div class="ore-card" style="padding:18px;border:1px solid var(--accent)">
+              <div style="font-weight:600;margin-bottom:4px">🏷️ Etichette Specializzazioni</div>
+              <div style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Nomi visualizzati nei filtri Consigli di Classe. Rilevati automaticamente dai piani di studio. Il tasto ↺ ripristina il default.</div>
+              <div id="specLabelsContainer"><span style="color:var(--muted);font-size:.85rem">Caricamento…</span></div>
+            </div>
           </div>
         </div>
       </div>
@@ -655,6 +660,19 @@ const CDC_DIPARTIMENTO = {
 };
 let dipartimentoOverride = (function(){try{const s=localStorage.getItem('organico_dip');return s?JSON.parse(s):{}}catch(e){return {};}})();
 let cattedraOverride = (function(){try{const s=localStorage.getItem('organico_cattedra');return s?JSON.parse(s):{}}catch(e){return {};}})();
+const SPEC_LABELS_DEFAULT = {
+  'ITG':'CAT',
+  'ITI_BIENNIO':'',
+  'ITI_CHIM':'Chimica',
+  'ITI_ELETTRO':'Elettrotecnica',
+  'ITI_MECC':'Meccanica',
+  'ITI_INF':'Informatica',
+  'ITI_MODA':'Moda',
+  'ITI_GAT':'GAT',
+  'ITI_PT':'PT',
+  'IPIA_ELETTRO':'Man. Elettrica',
+  'IPIA_MECC':'Man. Meccanica',
+};
 function getCattedra(nome){return cattedraOverride[nome]||18;}
 function saveCattedraOverride(){try{localStorage.setItem('organico_cattedra',JSON.stringify(cattedraOverride));}catch(e){}}
 function setCattedraDocente(nome){
@@ -762,6 +780,7 @@ function showPage(name, el) {
   if(name==='dipartimenti') renderDipartimenti();
   if(name==='potenziamento') renderPotenziamentoPage();
   if(name==='consigli') renderConsigli();
+  if(name==='export') renderSpecLabels();
 }
 
 // ============================================================
@@ -2049,19 +2068,68 @@ function getAnno(nome) {
   const m = nome.match(/\s([1-5])(?!\d)/);
   return m ? m[1] : '';
 }
-function getSpecializzazione(pianoKey) {
+function parseSpecKw(pianoKey) {
   if (!pianoKey) return '';
-  const k = pianoKey.toUpperCase();
-  const isIpia = k.startsWith('IPIA');
-  if (k.startsWith('ITG')) return 'CAT';
-  if (k.includes('CHIM')) return 'Chimica';
-  if (k.includes('ELETTRO')) return isIpia ? 'Man. Elettrica' : 'Elettrotecnica';
-  if (k.includes('MECC')) return isIpia ? 'Man. Meccanica' : 'Meccanica';
-  if (k.includes('INF')) return 'Informatica';
-  if (k.includes('MODA')) return 'Moda';
-  if (k.includes('GAT')) return 'GAT';
-  if (k.includes(' PT')) return 'PT';
-  return '';
+  const k = pianoKey.toUpperCase().trim();
+  if (k.startsWith('ITG')) return 'ITG';
+  const m = k.match(/^(ITI|IPIA|ITA)\s+([A-Z]+)/);
+  if (!m) return '';
+  return m[1] + '_' + m[2];
+}
+function getSpecLabels() {
+  const stored = JSON.parse(localStorage.getItem('organico_spec_labels') || 'null');
+  return Object.assign({}, SPEC_LABELS_DEFAULT, stored || {});
+}
+function saveSpecLabel(kw, label) {
+  const stored = JSON.parse(localStorage.getItem('organico_spec_labels') || '{}');
+  if (label === (SPEC_LABELS_DEFAULT[kw] ?? '')) {
+    delete stored[kw];
+  } else {
+    stored[kw] = label;
+  }
+  localStorage.setItem('organico_spec_labels', JSON.stringify(stored));
+  if (document.getElementById('specLabelsContainer')) renderSpecLabels();
+  const activePage = document.querySelector('.page.active');
+  if (activePage && activePage.id === 'page-consigli') renderConsigli();
+}
+function renderSpecLabels() {
+  const el = document.getElementById('specLabelsContainer');
+  if (!el) return;
+  const allKws = new Set(Object.keys(SPEC_LABELS_DEFAULT));
+  Object.keys(piani).forEach(pk => { const kw = parseSpecKw(pk); if (kw) allKws.add(kw); });
+  const labels = getSpecLabels();
+  const stored = JSON.parse(localStorage.getItem('organico_spec_labels') || '{}');
+  const kws = [...allKws].filter(k => k !== 'ITI_BIENNIO').sort();
+  el.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px">` +
+    kws.map(kw => {
+      const cur = labels[kw] !== undefined ? labels[kw] : '';
+      const isCustom = stored.hasOwnProperty(kw) && stored[kw] !== SPEC_LABELS_DEFAULT[kw];
+      return `<div style="display:flex;align-items:center;gap:10px">
+        <div style="min-width:130px;font-family:monospace;font-size:.8rem;color:var(--muted)">${kw}</div>
+        <input class="form-input" style="flex:1;height:32px;font-size:.85rem;${isCustom?'border-color:var(--accent)':''}"
+          value="${cur.replace(/"/g,'&quot;')}"
+          placeholder="${kw.split('_').pop()}"
+          onchange="saveSpecLabel('${kw}',this.value.trim())">
+        ${isCustom?`<button class="btn btn-ghost" style="padding:2px 8px;font-size:.75rem" onclick="resetSpecLabel('${kw}')">↺</button>`:''}
+      </div>`;
+    }).join('') +
+    `</div>`;
+}
+function resetSpecLabel(kw) {
+  const stored = JSON.parse(localStorage.getItem('organico_spec_labels') || '{}');
+  delete stored[kw];
+  localStorage.setItem('organico_spec_labels', JSON.stringify(stored));
+  renderSpecLabels();
+  const activePage = document.querySelector('.page.active');
+  if (activePage && activePage.id === 'page-consigli') renderConsigli();
+}
+function getSpecializzazione(pianoKey) {
+  const kw = parseSpecKw(pianoKey);
+  if (!kw) return '';
+  const labels = getSpecLabels();
+  const val = labels[kw];
+  if (val !== undefined) return val;
+  return kw.includes('_') ? kw.split('_').pop() : kw;
 }
 function getEntrySpec(entry) {
   if (entry.articolata && entry.sottogruppi && entry.sottogruppi.length)
